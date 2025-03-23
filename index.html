@@ -3,201 +3,188 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Setrox Calculator</title>
+  <title>Set Calculator</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     :root {
-      --bg: #f4f4f9;
-      --text: #111;
-      --card: white;
-      --btn: #4CAF50;
-      --btn-hover: #45a049;
+      --bg: #f4f4f9; --text: #111; --card: white;
+      --btn: #4CAF50; --btn-hover: #45a049;
     }
-
     body.dark-mode {
-      --bg: #121212;
-      --text: #fff;
-      --card: #1f1f1f;
-      --btn: #007bff;
-      --btn-hover: #0056b3;
+      --bg: #121212; --text: #fff; --card: #1f1f1f;
+      --btn: #007bff; --btn-hover: #0056b3;
     }
-
-    * {
-      box-sizing: border-box;
+    body.theme-neon {
+      --bg: #0f0f0f; --text: #39ff14; --card: #1a1a1a;
+      --btn: #39ff14; --btn-hover: #2ecc71;
     }
-
-    body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
+    body.theme-retro {
+      --bg: #fdf6e3; --text: #657b83; --card: #eee8d5;
+      --btn: #b58900; --btn-hover: #cb4b16;
     }
-
-    .navbar {
-      background: var(--card);
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
+    body.theme-glass {
+      --bg: #e0e0e0; --text: #222; --card: rgba(255,255,255,0.7);
+      --btn: #00bcd4; --btn-hover: #0097a7; backdrop-filter: blur(10px);
     }
-
-    .menu-icon {
-      font-size: 1.5em;
-      cursor: pointer;
+    body.theme-rainbow {
+      --bg: linear-gradient(135deg, #ff00cc, #3333ff);
+      --text: #fff; --card: rgba(255,255,255,0.2);
+      --btn: #ffffff88; --btn-hover: #ffffffcc; backdrop-filter: blur(20px);
     }
-
-    .dropdown {
-      position: absolute;
-      top: 60px;
-      right: 20px;
-      background: var(--card);
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      display: none;
-      flex-direction: column;
-      padding: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      animation: fadeIn 0.3s ease-in-out;
-    }
-
-    .dropdown button {
-      padding: 10px;
-      background: var(--btn);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 5px 0;
-    }
-
-    .dropdown button:hover {
-      background: var(--btn-hover);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 60px 20px;
-    }
-
-    .calculator {
-      background: var(--card);
-      padding: 20px;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 100%;
-    }
-
-    input[type="text"] {
-      width: 100%;
-      font-size: 2em;
-      margin-bottom: 15px;
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      background: #fff;
-      color: #000;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    .buttons button {
-      font-size: 1.5em;
-      padding: 15px;
-      border: none;
-      border-radius: 10px;
-      background: var(--btn);
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .buttons button:hover {
-      background: var(--btn-hover);
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-style: italic;
-      text-align: center;
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
+    .navbar { background: var(--card); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000; }
+    .menu-area { display: flex; align-items: center; gap: 15px; }
+    .menu-icon, .themes-icon, .game-icon { font-size: 1.5em; cursor: pointer; }
+    .dropdown { position: absolute; top: 60px; background: var(--card); border: 1px solid #ccc; border-radius: 10px; display: none; flex-direction: column; padding: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); animation: fadeIn 0.3s ease-in-out; }
+    .dropdown button { padding: 10px; background: var(--btn); color: white; border: none; border-radius: 8px; cursor: pointer; margin: 5px 0; }
+    .dropdown button:hover { background: var(--btn-hover); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    main { flex: 1; display: flex; justify-content: center; align-items: center; padding: 60px 20px; }
+    .panel { background: var(--card); padding: 20px; border-radius: 15px; box-shadow: 0 0 15px rgba(0,0,0,0.1); max-width: 400px; width: 100%; text-align: center; }
+    input[type="text"] { width: 100%; font-size: 2em; margin-bottom: 15px; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fff; color: #000; }
+    .buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .buttons button { font-size: 1.5em; padding: 15px; border: none; border-radius: 10px; background: var(--btn); color: white; cursor: pointer; transition: background 0.3s; }
+    .buttons button:hover { background: var(--btn-hover); }
+    .footer { margin-top: 20px; font-style: italic; text-align: center; }
+    .history-panel { max-height: 200px; overflow-y: auto; margin-top: 15px; padding: 10px; background: var(--card); border: 1px solid #ccc; border-radius: 10px; font-size: 0.9em; }
+    .history-entry { margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
+    .msg-box { margin-top: 10px; color: gold; font-weight: bold; animation: fadeIn 0.3s ease-in-out; }
   </style>
 </head>
 <body>
   <div class="navbar">
-    <h3>SetroxCalc</h3>
-    <i class="fas fa-bars menu-icon" onclick="toggleDropdown()"></i>
+    <h3 id="title">Set Calculator</h3>
+    <div class="menu-area">
+      <i class="fas fa-gamepad game-icon" onclick="toggleMode()"></i>
+      <i class="fas fa-palette themes-icon" onclick="toggleThemeDropdown()"></i>
+      <i class="fas fa-bars menu-icon" onclick="toggleDropdown()"></i>
+    </div>
     <div class="dropdown" id="dropdown">
       <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> Toggle Dark Mode</button>
+      <button onclick="toggleHistory()"><i class="fas fa-history"></i> View History</button>
+    </div>
+    <div class="dropdown" id="themeDropdown" style="right: 80px;">
+      <button onclick="selectTheme('')">Classic</button>
+      <button onclick="selectTheme('theme-neon')">Neon</button>
+      <button onclick="selectTheme('theme-retro')">Retro</button>
+      <button onclick="selectTheme('theme-glass')">Glass</button>
+      <button id="rainbowBtn" onclick="unlockRainbow()">Rainbow (Special)</button>
     </div>
   </div>
-
   <main>
-    <div class="calculator">
+    <div class="panel" id="calcPanel">
       <input type="text" id="display" disabled>
       <div class="buttons">
-        <button onclick="append('1')">1</button>
-        <button onclick="append('2')">2</button>
-        <button onclick="append('3')">3</button>
-        <button onclick="append('+')">+</button>
-        <button onclick="append('4')">4</button>
-        <button onclick="append('5')">5</button>
-        <button onclick="append('6')">6</button>
-        <button onclick="append('-')">-</button>
-        <button onclick="append('7')">7</button>
-        <button onclick="append('8')">8</button>
-        <button onclick="append('9')">9</button>
-        <button onclick="append('*')">*</button>
-        <button onclick="append('0')">0</button>
-        <button onclick="clearDisplay()">C</button>
-        <button onclick="calculate()">=</button>
-        <button onclick="append('/')">/</button>
+        <button onclick="append('1')">1</button><button onclick="append('2')">2</button><button onclick="append('3')">3</button><button onclick="append('+')">+</button>
+        <button onclick="append('4')">4</button><button onclick="append('5')">5</button><button onclick="append('6')">6</button><button onclick="append('-')">-</button>
+        <button onclick="append('7')">7</button><button onclick="append('8')">8</button><button onclick="append('9')">9</button><button onclick="append('*')">*</button>
+        <button onclick="append('0')">0</button><button onclick="backspace()"><i class='fas fa-backspace'></i></button><button onclick="calculate()">=</button><button onclick="clearDisplay()">C</button>
       </div>
+      <div id="history" class="history-panel" style="display:none"></div>
+      <div class="footer">by setrox</div>
+    </div>
+    <div class="panel" id="gamePanel" style="display:none">
+      <h2>Aura Roller</h2>
+      <p>Current Aura: <span id="currentAura">None</span></p>
+      <p>Coins: <strong id="coins">0</strong></p>
+      <button onclick="rollAura()" id="rollBtn">🎲 Roll</button>
+      <div id="msgContainer"></div>
       <div class="footer">by setrox</div>
     </div>
   </main>
-
   <script>
-    function append(char) {
-      document.getElementById('display').value += char;
+    let historyData = JSON.parse(localStorage.getItem('calcHistory')) || [],
+        coins = +localStorage.getItem('coins') || 0,
+        theme = localStorage.getItem('theme') || '',
+        cooldown = false;
+    const auras = [
+      { name: 'Common', chance: 55, reward: 0 },
+      { name: 'Rare', chance: 30, reward: 1 },
+      { name: 'Epic', chance: 10, reward: 2 },
+      { name: 'Legendary', chance: 4, reward: 5 },
+      { name: 'Mythical', chance: 0.89, reward: 20 },
+      { name: 'Exotic', chance: 0.1, reward: 100 },
+      { name: 'Godly', chance: 0.01, reward: 500 }
+    ];
+    function updateCoins() {
+      document.getElementById('coins').innerText = coins;
+      localStorage.setItem('coins', coins);
     }
-    function clearDisplay() {
-      document.getElementById('display').value = '';
+    function rollAura() {
+      if (cooldown) return;
+      cooldown = true;
+      setTimeout(() => cooldown = false, 2000);
+      let rand = Math.random() * 100, total = 0, aura = 'Common';
+      for (let a of auras) { total += a.chance; if (rand <= total) { aura = a.name; coins += a.reward; break; } }
+      document.getElementById('currentAura').innerText = aura;
+      updateCoins();
     }
+    function append(c) { display.value += c; }
+    function clearDisplay() { display.value = ''; }
+    function backspace() { display.value = display.value.slice(0, -1); }
     function calculate() {
-      try {
-        document.getElementById('display').value = eval(document.getElementById('display').value);
-      } catch {
-        document.getElementById('display').value = 'Error';
+      let i = display.value, r;
+      try { r = eval(i); display.value = r; addToHistory(i, r); } catch { display.value = 'Error'; }
+    }
+    function addToHistory(i, r) {
+      let t = new Date();
+      historyData.unshift({ input: i, result: r, timestamp: t });
+      localStorage.setItem('calcHistory', JSON.stringify(historyData));
+      renderHistory();
+    }
+    function renderHistory() {
+      let h = document.getElementById('history');
+      h.innerHTML = historyData.map(e => `<div class='history-entry'>${e.input} = <b>${e.result}</b><br><small>${timeAgo(new Date(e.timestamp))} ago</small></div>`).join('');
+    }
+    function timeAgo(d) {
+      const s = Math.floor((new Date() - d) / 1000), i = [ ['day',86400], ['hour',3600], ['min',60], ['sec',1] ];
+      for (let [l, sec] of i) { let c = Math.floor(s / sec); if (c > 0) return `${c} ${l}${c>1?'s':''}`; }
+      return 'just now';
+    }
+    function toggleDropdown() { toggleEl('dropdown'); }
+    function toggleThemeDropdown() { toggleEl('themeDropdown'); }
+    function toggleEl(id) {
+      let el = document.getElementById(id);
+      el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+    }
+    function toggleTheme() { document.body.classList.toggle('dark-mode'); }
+    function toggleHistory() {
+      let e = document.getElementById('history');
+      e.style.display = e.style.display === 'none' ? 'block' : 'none';
+    }
+    function selectTheme(t) {
+      document.body.className = document.body.className.replace(/theme-[^\s]+/g, '').trim();
+      if (t && (t !== 'theme-rainbow' || coins >= 50)) {
+        document.body.classList.add(t);
+        theme = t;
+        localStorage.setItem('theme', t);
       }
     }
-    function toggleDropdown() {
-      const dd = document.getElementById('dropdown');
-      dd.style.display = dd.style.display === 'flex' ? 'none' : 'flex';
+    function toggleMode() {
+      const isGame = title.innerText === 'Set Game';
+      title.innerText = isGame ? 'Set Calculator' : 'Set Game';
+      calcPanel.style.display = isGame ? 'block' : 'none';
+      gamePanel.style.display = isGame ? 'none' : 'block';
     }
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
+    function unlockRainbow() {
+      if (theme === 'theme-rainbow' || coins < 50) {
+        showMsg("This theme costs <b>50 Coins</b><br>Switch to Game Mode to earn Coins");
+        return;
+      }
+      coins -= 50; updateCoins();
+      selectTheme('theme-rainbow');
     }
+    function showMsg(m) {
+      let msg = document.createElement('div');
+      msg.className = 'msg-box';
+      msg.innerHTML = m;
+      msgContainer.appendChild(msg);
+      setTimeout(() => msg.remove(), 5000);
+    }
+    selectTheme(theme);
+    updateCoins();
+    renderHistory();
   </script>
 </body>
 </html>
