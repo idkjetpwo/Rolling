@@ -22,38 +22,42 @@
       --btn-hover: #0056b3;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
+      padding: 0;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 60px 20px;
+      min-height: 100vh;
     }
 
     .navbar {
-      position: fixed;
-      top: 0;
-      width: 100%;
       background: var(--card);
-      padding: 10px 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 15px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
-    .menu {
-      position: relative;
+    .menu-icon {
+      font-size: 1.5em;
+      cursor: pointer;
     }
 
     .dropdown {
       position: absolute;
-      top: 40px;
-      right: 0;
+      top: 60px;
+      right: 20px;
       background: var(--card);
       border: 1px solid #ccc;
       border-radius: 10px;
@@ -61,6 +65,7 @@
       flex-direction: column;
       padding: 10px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      animation: fadeIn 0.3s ease-in-out;
     }
 
     .dropdown button {
@@ -77,12 +82,25 @@
       background: var(--btn-hover);
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
     .calculator {
       background: var(--card);
       padding: 20px;
       border-radius: 15px;
       box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      max-width: 350px;
+      max-width: 400px;
       width: 100%;
     }
 
@@ -128,36 +146,36 @@
 <body>
   <div class="navbar">
     <h3>SetroxCalc</h3>
-    <div class="menu">
-      <i class="fas fa-bars" style="cursor:pointer" onclick="toggleDropdown()"></i>
-      <div class="dropdown" id="dropdown">
-        <button onclick="toggleTheme()"><i class="fas fa-moon"></i> Toggle Dark Mode</button>
-      </div>
+    <i class="fas fa-bars menu-icon" onclick="toggleDropdown()"></i>
+    <div class="dropdown" id="dropdown">
+      <button onclick="toggleTheme()"><i class="fas fa-adjust"></i> Toggle Dark Mode</button>
     </div>
   </div>
 
-  <div class="calculator">
-    <input type="text" id="display" disabled>
-    <div class="buttons">
-      <button onclick="append('1')">1</button>
-      <button onclick="append('2')">2</button>
-      <button onclick="append('3')">3</button>
-      <button onclick="append('+')">+</button>
-      <button onclick="append('4')">4</button>
-      <button onclick="append('5')">5</button>
-      <button onclick="append('6')">6</button>
-      <button onclick="append('-')">-</button>
-      <button onclick="append('7')">7</button>
-      <button onclick="append('8')">8</button>
-      <button onclick="append('9')">9</button>
-      <button onclick="append('*')">*</button>
-      <button onclick="append('0')">0</button>
-      <button onclick="clearDisplay()">C</button>
-      <button onclick="calculate()">=</button>
-      <button onclick="append('/')">/</button>
+  <main>
+    <div class="calculator">
+      <input type="text" id="display" disabled>
+      <div class="buttons">
+        <button onclick="append('1')">1</button>
+        <button onclick="append('2')">2</button>
+        <button onclick="append('3')">3</button>
+        <button onclick="append('+')">+</button>
+        <button onclick="append('4')">4</button>
+        <button onclick="append('5')">5</button>
+        <button onclick="append('6')">6</button>
+        <button onclick="append('-')">-</button>
+        <button onclick="append('7')">7</button>
+        <button onclick="append('8')">8</button>
+        <button onclick="append('9')">9</button>
+        <button onclick="append('*')">*</button>
+        <button onclick="append('0')">0</button>
+        <button onclick="clearDisplay()">C</button>
+        <button onclick="calculate()">=</button>
+        <button onclick="append('/')">/</button>
+      </div>
+      <div class="footer">by setrox</div>
     </div>
-    <div class="footer">by setrox</div>
-  </div>
+  </main>
 
   <script>
     function append(char) {
