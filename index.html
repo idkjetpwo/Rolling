@@ -296,7 +296,7 @@
 
     .msg-box {
       position: fixed;
-      top: 20px;
+      bottom: 20px; /* Moved to bottom */
       left: 50%;
       transform: translateX(-50%);
       background: #333;
@@ -307,20 +307,20 @@
       z-index: 1000;
       text-align: center;
       opacity: 0;
-      transform: translateY(-20px);
+      transform: translateX(-50%) translateY(20px); /* Adjusted for bottom positioning */
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
     .msg-box.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateX(-50%) translateY(0);
     }
 
     .warning-frame {
       position: fixed;
-      top: 50%;
+      bottom: 20px; /* Moved to bottom */
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
       background: white;
       padding: 20px;
       border-radius: 10px;
@@ -777,6 +777,65 @@
   </div>
 
   <script>
+    // Block DevTools Access
+    // Prevent common keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, etc.)
+    document.addEventListener('keydown', function(e) {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+        (e.ctrlKey && e.key === 'U') // Ctrl+U for view source
+      ) {
+        e.preventDefault();
+        showMsg("Developer tools are disabled for this application.");
+      }
+    });
+
+    // Detect DevTools opening by checking window size changes (common on desktop)
+    let devToolsOpen = false;
+    const checkDevTools = () => {
+      const threshold = 160; // Approximate size of DevTools
+      const widthDiff = window.outerWidth - window.innerWidth > threshold;
+      const heightDiff = window.outerHeight - window.innerHeight > threshold;
+      if (widthDiff || heightDiff) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          showMsg("Developer tools are disabled for this application.");
+          // Optionally, you can redirect or disable functionality
+          // window.location.href = "about:blank"; // Redirect to blank page
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    };
+    setInterval(checkDevTools, 1000);
+
+    // Prevent right-click (context menu) to block "Inspect" option
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      showMsg("Right-click is disabled for this application.");
+    });
+
+    // Prevent touch gestures on mobile that might open DevTools
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 2) { // Detect multi-finger gestures
+        e.preventDefault();
+        showMsg("Multi-touch gestures are disabled for this application.");
+      }
+    });
+
+    // Block attempts to open DevTools via browser menu by overriding console
+    (function() {
+      const originalConsole = window.console;
+      window.console = {
+        log: function() { showMsg("Console access is disabled."); },
+        warn: function() { showMsg("Console access is disabled."); },
+        error: function() { showMsg("Console access is disabled."); },
+        info: function() { showMsg("Console access is disabled."); },
+        clear: function() { showMsg("Console access is disabled."); }
+      };
+    })();
+
+    // Main Game Logic
     let historyData = JSON.parse(localStorage.getItem('calcHistory')) || [],
         coins = +localStorage.getItem('coins') || 0,
         theme = localStorage.getItem('theme') || '',
@@ -1024,7 +1083,6 @@
       }
       toggleEl('dropdown');
 
-      // Enable/disable the "View History" button based on the mode
       const historyBtn = document.getElementById('historyBtn');
       if (isGameMode) {
         historyBtn.classList.add('disabled');
