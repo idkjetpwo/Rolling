@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Add Content Security Policy to prevent unauthorized script execution -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; object-src 'none';">
   <title>Calculator Web Upgrade</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
@@ -298,7 +296,7 @@
 
     .msg-box {
       position: fixed;
-      bottom: 20px;
+      bottom: 20px; /* Moved to bottom */
       left: 50%;
       transform: translateX(-50%);
       background: #333;
@@ -309,7 +307,7 @@
       z-index: 1000;
       text-align: center;
       opacity: 0;
-      transform: translateX(-50%) translateY(20px);
+      transform: translateX(-50%) translateY(20px); /* Adjusted for bottom positioning */
       transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
@@ -320,7 +318,7 @@
 
     .warning-frame {
       position: fixed;
-      bottom: 100px; /* Adjusted to be in the middle bottom, above the very bottom */
+      bottom: 20px; /* Moved to bottom */
       left: 50%;
       transform: translateX(-50%);
       background: white;
@@ -496,7 +494,7 @@
     .theme-rainbow-plus #calcPanel,
     .theme-rainbow-plus #gamePanel,
     .theme-rainbow-plus #history {
-      background: rgba(255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.9);
       border: 2px solid transparent;
       border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
@@ -697,10 +695,6 @@
       #superRollBtn::after {
         top: 5px;
       }
-
-      .warning-frame {
-        bottom: 80px; /* Slightly adjusted for smaller screens */
-      }
     }
   </style>
 </head>
@@ -783,29 +777,7 @@
   </div>
 
   <script>
-    // Enhanced DevTools Detection and Prevention
-    let devToolsOpen = false;
-    const checkDevTools = () => {
-      const threshold = 160; // Approximate size of DevTools
-      const widthDiff = window.outerWidth - window.innerWidth > threshold;
-      const heightDiff = window.outerHeight - window.innerHeight > threshold;
-      const isDevTools = widthDiff || heightDiff || window.console.__proto__ !== undefined;
-
-      if (isDevTools) {
-        if (!devToolsOpen) {
-          devToolsOpen = true;
-          showMsg("Developer tools are disabled for this application.");
-          // Redirect to a blank page or disable functionality
-          setTimeout(() => {
-            window.location.href = "about:blank";
-          }, 1000);
-        }
-      } else {
-        devToolsOpen = false;
-      }
-    };
-    setInterval(checkDevTools, 500); // Check more frequently
-
+    // Block DevTools Access
     // Prevent common keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, etc.)
     document.addEventListener('keydown', function(e) {
       if (
@@ -817,6 +789,25 @@
         showMsg("Developer tools are disabled for this application.");
       }
     });
+
+    // Detect DevTools opening by checking window size changes (common on desktop)
+    let devToolsOpen = false;
+    const checkDevTools = () => {
+      const threshold = 160; // Approximate size of DevTools
+      const widthDiff = window.outerWidth - window.innerWidth > threshold;
+      const heightDiff = window.outerHeight - window.innerHeight > threshold;
+      if (widthDiff || heightDiff) {
+        if (!devToolsOpen) {
+          devToolsOpen = true;
+          showMsg("Developer tools are disabled for this application.");
+          // Optionally, you can redirect or disable functionality
+          // window.location.href = "about:blank"; // Redirect to blank page
+        }
+      } else {
+        devToolsOpen = false;
+      }
+    };
+    setInterval(checkDevTools, 1000);
 
     // Prevent right-click (context menu) to block "Inspect" option
     document.addEventListener('contextmenu', function(e) {
@@ -832,7 +823,7 @@
       }
     });
 
-    // Override console to prevent interaction
+    // Block attempts to open DevTools via browser menu by overriding console
     (function() {
       const originalConsole = window.console;
       window.console = {
@@ -843,48 +834,6 @@
         clear: function() { showMsg("Console access is disabled."); }
       };
     })();
-
-    // Prevent JavaScript Injection
-    // Override key functions to prevent tampering
-    const originalSetTimeout = window.setTimeout;
-    window.setTimeout = function(callback, delay, ...args) {
-      if (typeof callback === 'string') {
-        showMsg("Code injection is not allowed.");
-        return;
-      }
-      return originalSetTimeout(callback, delay, ...args);
-    };
-
-    const originalSetInterval = window.setInterval;
-    window.setInterval = function(callback, delay, ...args) {
-      if (typeof callback === 'string') {
-        showMsg("Code injection is not allowed.");
-        return;
-      }
-      return originalSetInterval(callback, delay, ...args);
-    };
-
-    // Prevent eval and Function constructor to block dynamic code execution
-    window.eval = function() {
-      showMsg("Code injection is not allowed.");
-      throw new Error("eval is disabled.");
-    };
-
-    window.Function = function() {
-      showMsg("Code injection is not allowed.");
-      throw new Error("Function constructor is disabled.");
-    };
-
-    // Integrity check for critical functions
-    const originalRollAura = rollAura;
-    setInterval(() => {
-      if (rollAura !== originalRollAura) {
-        showMsg("Unauthorized modification detected. Reloading...");
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      }
-    }, 1000);
 
     // Main Game Logic
     let historyData = JSON.parse(localStorage.getItem('calcHistory')) || [],
