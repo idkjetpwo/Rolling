@@ -315,10 +315,15 @@
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 5.0</h4>
+        <ul>
+          <li>💰 Added coin rewards: Master (80 coins), Grand-Master (150 coins).</li>
+        </ul>
         <h4>Update 4.0</h4>
         <ul>
-          <li>⚠️ Added specific warning for rolling away Epic aura at Rebirth 0: 'Do you really wanna roll away your Epic aura? You need this for your next rebirth!'</li>
-          <li>🔧 Adjusted aura chances dynamically: Basic/Uncommon less common at low luck, Epic-Legendary more common; Uncommon/Rare less common at moderate luck, Legendary-Mythic more common; Godly/Master very slowly more common above 70% luck.</li>
+          <li>⚠️ Fixed Epic aura warning to trigger only at Rebirth 0, not 2 or higher.</li>
+          <li>🏆 Updated best aura to use rank instead of rarity for accurate tracking (e.g., notbenox over vaschili).</li>
+          <li>🔧 Enhanced luck boost: Basic/Uncommon less common, Legendary-Master more common with higher luck; adjusted post-rebirth probabilities.</li>
           <li>🌟 Added 'Benox' Master aura (0.2%) and renamed 'Setrox' to 'Grand-Master' 🏆 (0.01%), neither required for rebirth.</li>
           <li>🍀 Super Roll page now displays luck boost +500% only while on that tab.</li>
         </ul>
@@ -366,7 +371,7 @@
     <h1>🎰 Aura Roller Game 🎉</h1>
     <div class="aura" id="auraDisplay">✨ Roll to get your Aura! ✨</div>
     <div class="info">
-      <p>💰 Coins per Rarity: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50)</p>
+      <p>💰 Coins per Rarity: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50), Master (80), Grand-Master (150)</p>
       <p>🌈 Current Aura: <span id="currentAura">None</span></p>
       <p>🏆 Best Aura: <span id="bestAura">None</span></p>
       <p>⏰ Playtime: <span id="playtime">0m</span></p>
@@ -447,7 +452,7 @@
 
       if (currentAura && currentAura.rank >= 4) { // Legendary or better (Epic = 4, up to Grand-Master = 8)
         if (rebirthStage === 0 && currentAura.rarity === "Epic") {
-          showWarningPopup(true, "Do you really wanna roll away your Epic aura? You need this for your next rebirth!");
+          showWarningPopup(isSuperRoll, "Do you really wanna roll away your Epic aura? You need this for your next rebirth!");
         } else {
           showWarningPopup(isSuperRoll);
         }
@@ -491,7 +496,7 @@
         cumulative += aura.chance;
         if (roll <= cumulative) {
           currentAura = auras.find(a => a.name === aura.name);
-          if (!bestAura || aura.rank > bestAura.rank) bestAura = aura;
+          if (!bestAura || currentAura.rank > bestAura.rank || (currentAura.rank === bestAura.rank && auras.findIndex(a => a.name === currentAura.name) > auras.findIndex(a => a.name === bestAura.name))) bestAura = currentAura;
           addCoins(currentAura.rarity);
           break;
         }
@@ -525,7 +530,9 @@
         Epic: 3,
         Legendary: 8,
         Mythic: 18,
-        Godly: 50
+        Godly: 50,
+        Master: 80,
+        "Grand-Master": 150
       };
       coins += coinValues[rarity] || 0;
     }
