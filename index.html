@@ -69,7 +69,14 @@
     }
 
     .gradient-text-master {
-      background: linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);
+      background: linear-gradient(90deg, #ffff00, #87CEEB, #ffffff); /* Yellowish-little-blueish-whiteish for Master */
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 2s infinite;
+    }
+
+    .gradient-text-grandmaster {
+      background: linear-gradient(90deg, #00ffcc, #00cc99, #ffffff); /* Grand-Master retains original */
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: pulse 2s infinite;
@@ -291,6 +298,11 @@
     .popup-button:hover {
       transform: scale(1.1);
     }
+
+    .completed {
+      color: #00ff00;
+      text-decoration: line-through;
+    }
   </style>
 </head>
 <body>
@@ -319,17 +331,29 @@
     <div class="tab-content" id="upgrades">
       <button class="button" onclick="upgradeLuck()">🔮 Luck Upgrade</button>
       <div class="requirements" id="luckUpgradeReqs"></div>
-      <p>Luck Upgrade Stage: <span id="luckUpgrades">0/10</span></p>
+      <p>Luck Upgrade Stage: <span id="luckUpgrades">0/10</span> <span id="eleventhUpgrade">(11th upgrade unlocked after 5th rebirth)</span></p>
       <button class="button" onclick="upgradeCooldown()">⏱️ Rolling Cooldown</button>
       <div class="requirements" id="cooldownReqs"></div>
       <p>Cooldown Upgrade Stage: <span id="cooldownUpgrades">0/3</span></p>
-      <button class="button" onclick="rebirth()">💫 Rebirth</button>
+      <button class="button" onclick="checkRebirth()">💫 Rebirth</button>
       <div class="requirements" id="rebirthReqs"></div>
       <p>Rebirth Stage: <span id="rebirthStage">0/5</span></p>
     </div>
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 7.0 (03.07.25)</h4>
+        <ul>
+          <li>🐛 Fixed aura duplication bug when rolling after a good aura.</li>
+          <li>🎨 Changed Master aura color to yellowish-little-blueish-whiteish gradient; Grand-Master retains original.</li>
+          <li>🔧 Corrected luck boost: Below 50% no change for lower tiers, 1.1x for Epic+; 50%+ reduces Basic (0.8x), Uncommon (0.85x), Rare (0.9x), boosts Legendary+ (1.2x–1.5x + luck scaling) for all high-tier auras.</li>
+          <li>💫 Added rebirth material tracking: Displays requirements (e.g., Coins -/15, Epic Aura) with green ✅ and strikethrough when met; allows submitting coins/aura incrementally.</li>
+          <li>🔮 Added 11th luck upgrade unlockable after Rebirth 5 (5000 Coins, +40% luck); 10 is max without Rebirth 5.</li>
+        </ul>
+        <h4>Update 6.2 (03.07.25)</h4>
+        <ul>
+          <li>🔧 Fixed luck adjustment bug: Ensured proportional chance boosts for Legendary+ auras (1.2x–1.5x + luck-based scaling) and reduced over-scaling of 'Benox' (Master) aura chances.</li>
+        </ul>
         <h4>Update 6.1 (03.07.25)</h4>
         <ul>
           <li>🔧 Fixed luck adjustment: Below 50% luck, chances remain balanced with a slight increase for Epic+; at 50%+, Basic/Uncommon chances decrease (0.8x/0.85x), Legendary+ increase (1.3x, Godly/Master with luck-based boost).</li>
@@ -430,8 +454,8 @@
       { name: "cleverlink", rarity: "Mythic", baseChance: 0.2, color: "rainbow", rank: 6 },
       { name: "adi pr 69", rarity: "Mythic", baseChance: 0.1, color: "rainbow", rank: 6 },
       { name: "Elox487", rarity: "Godly", baseChance: 0.05, color: "blackwhite", rank: 7 },
-      { name: "Benox", rarity: "Master", baseChance: 0.2, color: "gradient-master", rank: 8 },
-      { name: "Setrox", rarity: "Grand-Master", baseChance: 0.01, color: "gradient-master", rank: 8 }
+      { name: "Benox", rarity: "Master", baseChance: 0.2, color: "gradient-text-master", rank: 8 },
+      { name: "Setrox", rarity: "Grand-Master", baseChance: 0.01, color: "gradient-text-grandmaster", rank: 8 }
     ];
 
     let currentAura = null;
@@ -450,9 +474,18 @@
     let playtimeMinutes = 0;
     let pendingSuperRoll = false;
     let currentTab = "normal-roll";
+    let rebirthMaterials = {
+      0: { coins: 0, requiredCoins: 15, aura: null, requiredAura: "Epic" },
+      1: { coins: 0, requiredCoins: 35, aura: null, requiredAura: "Legendary" },
+      2: { coins: 0, requiredCoins: 90, aura: null, requiredAura: "Valentin kö 8" },
+      3: { coins: 0, requiredCoins: 200, aura: null, requiredAura: "adi pr 69" },
+      4: { coins: 0, requiredCoins: 500, aura: null, requiredAura: "Elox487" },
+      5: { coins: 0, requiredCoins: 800, aura: null, requiredAura: "Benox" },
+      6: { coins: 0, requiredCoins: 1500, aura: null, requiredAura: "Setrox" }
+    };
 
     function saveGame() {
-      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, hasResetAll, playtimeMinutes };
+      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, hasResetAll, playtimeMinutes, rebirthMaterials };
       localStorage.setItem("auraGameSave", JSON.stringify(data));
       console.log("Game saved:", data); // Debugging log
     }
@@ -473,19 +506,27 @@
         hasResetAll = data.hasResetAll || false;
         playtimeMinutes = data.playtimeMinutes || 0;
         startTime = Date.now() - (playtimeMinutes * 60000);
+        rebirthMaterials = data.rebirthMaterials || {
+          0: { coins: 0, requiredCoins: 15, aura: null, requiredAura: "Epic" },
+          1: { coins: 0, requiredCoins: 35, aura: null, requiredAura: "Legendary" },
+          2: { coins: 0, requiredCoins: 90, aura: null, requiredAura: "Valentin kö 8" },
+          3: { coins: 0, requiredCoins: 200, aura: null, requiredAura: "adi pr 69" },
+          4: { coins: 0, requiredCoins: 500, aura: null, requiredAura: "Elox487" },
+          5: { coins: 0, requiredCoins: 800, aura: null, requiredAura: "Benox" },
+          6: { coins: 0, requiredCoins: 1500, aura: null, requiredAura: "Setrox" }
+        };
 
-        // One-time reset for all upgrades and rebirths
         if (!hasResetAll) {
           rebirthStage = 0;
           luckUpgrades = 0;
           cooldownLevel = 0;
-          luckBoost = 0; // Reset to 0, upgrades will add from here
+          luckBoost = 0;
           coins = 0;
           hasResetAll = true;
           alert("🔄 A one-time reset of all upgrades, rebirths, and coins has been applied due to balance changes. Enjoy the updated game!");
         } else if (!hasResetRebirths) {
           rebirthStage = 0;
-          luckBoost = luckUpgrades * 2; // Adjust for new luck upgrade values if reset was only partial
+          luckBoost = luckUpgrades * 2;
           hasResetRebirths = true;
         }
         updateDisplay();
@@ -506,8 +547,8 @@
         return;
       }
 
-      // Check Epic warning only if required for next rebirth
-      if (currentAura && currentAura.rarity === "Epic" && rebirthStage === 0) {
+      // Check Epic warning only if required for next rebirth and not already submitted
+      if (currentAura && currentAura.rarity === "Epic" && rebirthStage === 0 && !rebirthMaterials[0].aura) {
         showWarningPopup(isSuperRoll, "Do you really wanna roll away your Epic aura? You need this for your next rebirth!");
         pendingSuperRoll = isSuperRoll;
         return;
@@ -548,9 +589,10 @@
       for (let aura of normalizedAuras) {
         cumulative += aura.chance;
         if (roll <= cumulative) {
-          currentAura = auras.find(a => a.name === aura.name);
-          if (!bestAura || currentAura.rank > bestAura.rank || (currentAura.rank === bestAura.rank && auras.findIndex(a => a.name === currentAura.name) > auras.findIndex(a => a.name === bestAura.name))) bestAura = currentAura;
+          currentAura = { ...auras.find(a => a.name === aura.name) }; // Create new object to avoid reference issues
+          if (!bestAura || currentAura.rank > bestAura.rank || (currentAura.rank === bestAura.rank && auras.findIndex(a => a.name === currentAura.name) > auras.findIndex(a => a.name === bestAura.name))) bestAura = { ...currentAura };
           addCoins(currentAura.rarity);
+          checkRebirthMaterials();
           break;
         }
       }
@@ -567,8 +609,13 @@
         } else { // luck >= 50
           if (aura.rarity === "Basic") adjustedChance *= 0.8; // Lower Basic
           if (aura.rarity === "Uncommon") adjustedChance *= 0.85; // Lower Uncommon
-          if (aura.rank >= 5) adjustedChance *= 1.3; // Boost Legendary+
-          if (aura.rank >= 7) adjustedChance *= 1 + (luck - 50) * 0.005; // Further boost for Godly/Master
+          if (aura.rarity === "Rare") adjustedChance *= 0.9; // Lower Rare
+          if (aura.rank >= 5) { // Legendary+
+            if (aura.rank === 5) adjustedChance *= (1.2 + (luck - 50) * 0.002); // Legendary
+            if (aura.rank === 6) adjustedChance *= (1.3 + (luck - 50) * 0.003); // Mythic
+            if (aura.rank === 7) adjustedChance *= (1.4 + (luck - 50) * 0.004); // Godly
+            if (aura.rank === 8) adjustedChance *= (1.5 + (luck - 50) * 0.005); // Master/Grand-Master
+          }
         }
         return { ...aura, chance: adjustedChance };
       });
@@ -585,23 +632,96 @@
         "Grand-Master": 150
       };
       coins += coinValues[rarity] || 0;
+      checkRebirthMaterials();
+    }
+
+    function submitCoins(amount) {
+      if (amount <= coins) {
+        coins -= amount;
+        rebirthMaterials[rebirthStage].coins += amount;
+        checkRebirthMaterials();
+        updateDisplay();
+        saveGame();
+      } else {
+        alert("⚠️ Not enough Coins!");
+      }
+    }
+
+    function submitAura() {
+      if (currentAura && rebirthMaterials[rebirthStage].requiredAura === (currentAura.name || currentAura.rarity)) {
+        rebirthMaterials[rebirthStage].aura = currentAura;
+        currentAura = null;
+        checkRebirthMaterials();
+        updateDisplay();
+        saveGame();
+      } else {
+        alert("⚠️ This aura doesn't match the rebirth requirement!");
+      }
+    }
+
+    function checkRebirthMaterials() {
+      const req = rebirthMaterials[rebirthStage];
+      if (req.coins >= req.requiredCoins && req.aura && (req.aura.name === req.requiredAura || req.aura.rarity === req.requiredAura)) {
+        rebirthMaterials[rebirthStage].coins = req.requiredCoins;
+        rebirth();
+      }
+    }
+
+    function checkRebirth() {
+      const req = rebirthMaterials[rebirthStage];
+      if (req.coins >= req.requiredCoins && req.aura && (req.aura.name === req.requiredAura || req.aura.rarity === req.requiredAura)) {
+        rebirth();
+      } else {
+        alert("⚠️ Rebirth requirements not met!");
+      }
+    }
+
+    function rebirth() {
+      const req = rebirthMaterials[rebirthStage];
+      const rebirthRequirements = [
+        { rarity: "Epic", coins: 15, luck: 15 },
+        { rarity: "Legendary", coins: 35, luck: 40 },
+        { name: "Valentin kö 8", coins: 90, luck: 60 },
+        { name: "adi pr 69", coins: 200, luck: 100 },
+        { name: "Elox487", coins: 500, luck: 150 },
+        { name: "Benox", coins: 800, luck: 200 },
+        { name: "Setrox", coins: 1500, luck: 250 }
+      ];
+
+      if (rebirthStage >= rebirthRequirements.length) {
+        alert("✅ Maximum Rebirth reached!");
+        return;
+      }
+
+      const isValidAura = req.aura.name === req.requiredAura || req.aura.rarity === req.requiredAura;
+      if (isValidAura && req.coins >= req.requiredCoins) {
+        coins = 0; // Lose all coins after rebirth
+        luckBoost += rebirthRequirements[rebirthStage].luck;
+        rebirthStage++;
+        currentAura = null;
+        rebirthMaterials[rebirthStage] = { coins: 0, requiredCoins: rebirthRequirements[rebirthStage]?.requiredCoins || 0, aura: null, requiredAura: rebirthRequirements[rebirthStage]?.requiredAura || "" };
+        alert(`💫 Rebirth ${rebirthStage} completed! +${rebirthRequirements[rebirthStage - 1].luck}% Luck! All coins lost.`);
+        if (rebirthStage === 5) alert("🔮 Unlocked 11th Luck Upgrade after Rebirth 5!");
+        updateDisplay();
+        saveGame();
+      }
     }
 
     function upgradeLuck() {
-      if (luckUpgrades >= 10) {
+      if (luckUpgrades >= (rebirthStage >= 5 ? 11 : 10)) {
         alert("✅ Maximum Luck Upgrades reached!");
         return;
       }
 
-      const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000];
-      const luckBoosts = [2, 5, 10, 12, 15, 17, 20, 25, 30, 35];
+      const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000, 5000];
+      const luckBoosts = [2, 5, 10, 12, 15, 17, 20, 25, 30, 35, 40];
       const cost = upgradeCosts[luckUpgrades];
 
       if (coins >= cost) {
         coins -= cost;
         luckUpgrades++;
         luckBoost += luckBoosts[luckUpgrades - 1];
-        alert(`🔮 Luck Upgrade ${luckUpgrades}/10 completed! +${luckBoosts[luckUpgrades - 1]}% Luck!`);
+        alert(`🔮 Luck Upgrade ${luckUpgrades}/${rebirthStage >= 5 ? 11 : 10} completed! +${luckBoosts[luckUpgrades - 1]}% Luck!`);
         updateDisplay();
         saveGame();
       } else {
@@ -629,44 +749,6 @@
       }
     }
 
-    function rebirth() {
-      if (!currentAura) {
-        alert("⚠️ You must roll an Aura first!");
-        return;
-      }
-
-      const rebirthRequirements = [
-        { rarity: "Epic", coins: 15, luck: 15 },
-        { rarity: "Legendary", coins: 35, luck: 40 },
-        { name: "Valentin kö 8", coins: 90, luck: 60 },
-        { name: "adi pr 69", coins: 200, luck: 100 },
-        { name: "Elox487", coins: 500, luck: 150 },
-        { name: "Benox", coins: 800, luck: 200 },
-        { name: "Setrox", coins: 1500, luck: 250 }
-      ];
-
-      if (rebirthStage >= rebirthRequirements.length) {
-        alert("✅ Maximum Rebirth reached!");
-        return;
-      }
-
-      const req = rebirthRequirements[rebirthStage];
-      const isValidAura = req.name ? currentAura.name === req.name : currentAura.rarity === req.rarity;
-
-      if (isValidAura && coins >= req.coins) {
-        coins -= req.coins; // Deduct rebirth cost
-        coins = 0; // Lose all coins after rebirth
-        luckBoost += req.luck;
-        rebirthStage++;
-        currentAura = null;
-        alert(`💫 Rebirth ${rebirthStage} completed! +${req.luck}% Luck! All coins lost.`);
-        updateDisplay();
-        saveGame();
-      } else {
-        alert(`⚠️ Requires ${req.name || req.rarity} Aura and ${req.coins} Coins for Rebirth ${rebirthStage + 1}!`);
-      }
-    }
-
     function updateDisplay(isSuperRoll = false) {
       const auraDisplay = document.getElementById("auraDisplay");
       auraDisplay.classList.remove("animate");
@@ -675,28 +757,32 @@
 
       const isGradient = currentAura && currentAura.rarity === "Godly";
       const isRainbow = currentAura && currentAura.rarity === "Mythic";
-      const isMaster = currentAura && (currentAura.rarity === "Master" || currentAura.rarity === "Grand-Master");
+      const isMaster = currentAura && currentAura.rarity === "Master";
+      const isGrandMaster = currentAura && currentAura.rarity === "Grand-Master";
       const auraNameStyled = currentAura
-        ? isMaster
-          ? `<span class="gradient-text-master">${currentAura.name}</span>`
-          : isGradient
-            ? `<span class="gradient-text">${currentAura.name}</span>`
-            : isRainbow
-              ? `<span class="rainbow-text">${currentAura.name}</span>`
-              : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
+        ? isGrandMaster
+          ? `<span class="gradient-text-grandmaster">${currentAura.name}</span>`
+          : isMaster
+            ? `<span class="gradient-text-master">${currentAura.name}</span>`
+            : isGradient
+              ? `<span class="gradient-text">${currentAura.name}</span>`
+              : isRainbow
+                ? `<span class="rainbow-text">${currentAura.name}</span>`
+                : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
         : "None";
 
       auraDisplay.innerHTML = `🌈 You got: ${auraNameStyled} ${currentAura ? `(${currentAura.rarity})` : ""}`;
       document.getElementById("currentAura").innerHTML = auraNameStyled;
       document.getElementById("bestAura").innerHTML = bestAura
-        ? `<span style="${bestAura.color === 'blackwhite' ? 'background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'rainbow' ? 'background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'gradient-master' ? 'background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : `color:${bestAura.color}`}">
+        ? `<span style="${bestAura.color === 'blackwhite' ? 'background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'rainbow' ? 'background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'gradient-text-master' ? 'background:linear-gradient(90deg, #ffff00, #87CEEB, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'gradient-text-grandmaster' ? 'background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : `color:${bestAura.color}`}">
             ${bestAura.name}
           </span>`
         : "None";
       document.getElementById("coins").textContent = coins;
-      document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/10`;
+      document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/${rebirthStage >= 5 ? 11 : 10}`;
+      document.getElementById("eleventhUpgrade").style.display = rebirthStage >= 5 ? "inline" : "none";
       document.getElementById("cooldownUpgrades").textContent = `${cooldownLevel}/3`;
-      document.getElementById("rebirthStage").textContent = `${rebirthStage}/5`; // Updated to 0/5 format
+      document.getElementById("rebirthStage").textContent = `${rebirthStage}/5`;
       document.getElementById("totalRolls").textContent = totalRolls;
       document.getElementById("superRolls").textContent = superRolls;
       document.getElementById("currentLuck").textContent = `${luckBoost}%`;
@@ -714,6 +800,7 @@
 
     function updateRebirthRequirements() {
       const reqs = document.getElementById("rebirthReqs");
+      const req = rebirthMaterials[rebirthStage];
       const rebirthRequirements = [
         { rarity: "Epic", coins: 15, luck: 15 },
         { rarity: "Legendary", coins: 35, luck: 40 },
@@ -729,29 +816,32 @@
         return;
       }
 
-      const req = rebirthRequirements[rebirthStage];
       const colorMap = {
         Epic: "purple",
         Legendary: "gold",
         Mythic: "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;",
         Godly: "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;",
-        Master: "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;",
+        Master: "background:linear-gradient(90deg, #ffff00, #87CEEB, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;",
         "Grand-Master": "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
       };
-      const auraText = req.name
-        ? `<span style="${colorMap[req.name === "Benox" ? "Master" : "Grand-Master"] || colorMap.Godly}">${req.name}</span>`
-        : `<span style="color:${colorMap[req.rarity]}">${req.rarity}</span>`;
-      reqs.innerHTML = `💫 Next Rebirth: ${auraText} + ${req.coins} Coins → <strong>+${req.luck}% Luck</strong>`;
+      const auraText = req.requiredAura
+        ? `<span style="${colorMap[req.requiredAura === "Benox" ? "Master" : req.requiredAura === "Setrox" ? "Grand-Master" : colorMap[req.requiredAura] || colorMap.Godly]}">${req.requiredAura}</span>`
+        : `<span style="color:${colorMap[req.requiredAura]}">${req.requiredAura}</span>`;
+      const coinsText = `~~- Coins ${req.coins}/${req.requiredCoins} ${req.coins >= req.requiredCoins ? "✅" : ""}~~`;
+      const auraTextLine = `~~- ${auraText} ${req.aura ? "✅" : ""}~~`;
+      const rewardText = `Reward: +${rebirthRequirements[rebirthStage].luck}% Luck`;
+
+      reqs.innerHTML = `<div class="${req.coins >= req.requiredCoins ? 'completed' : ''}">${coinsText}</div><div class="${req.aura ? 'completed' : ''}">${auraTextLine}</div><p>${rewardText}</p>`;
     }
 
     function updateLuckUpgradeRequirements() {
       const reqs = document.getElementById("luckUpgradeReqs");
-      if (luckUpgrades >= 10) {
+      if (luckUpgrades >= (rebirthStage >= 5 ? 11 : 10)) {
         reqs.innerHTML = "✅ Maximum Luck Upgrades reached! 🌟";
         return;
       }
-            const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000];
-      reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+${[2, 5, 10, 12, 15, 17, 20, 25, 30, 35][luckUpgrades]}% Luck</strong>`;
+      const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000, 5000];
+      reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+${[2, 5, 10, 12, 15, 17, 20, 25, 30, 35, 40][luckUpgrades]}% Luck</strong>`;
     }
 
     function updateCooldownRequirements() {
@@ -784,9 +874,11 @@
           ? "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
           : aura.color === "blackwhite"
             ? "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
-            : aura.color === "gradient-master"
-              ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
-              : `color:${aura.color}`;
+            : aura.color === "gradient-text-master"
+              ? "background:linear-gradient(90deg, #ffff00, #87CEEB, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+              : aura.color === "gradient-text-grandmaster"
+                ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+                : `color:${aura.color}`;
         html += `<li><span style="${colorStyle}">${aura.name}</span> (${aura.rarity}): ${aura.chance.toFixed(2)}%</li>`;
       });
       html += "</ul>";
@@ -819,14 +911,18 @@
     function showWarningPopup(isSuperRoll, customMessage = null) {
       const popup = document.getElementById("warningPopup");
       const message = document.getElementById("warningMessage");
+      const isMaster = currentAura && currentAura.rarity === "Master";
+      const isGrandMaster = currentAura && currentAura.rarity === "Grand-Master";
       const auraNameStyled = currentAura
-        ? currentAura.rarity === "Grand-Master" || currentAura.rarity === "Master"
-          ? `<span class="gradient-text-master">${currentAura.name}</span>`
-          : currentAura.rarity === "Godly"
-            ? `<span class="gradient-text">${currentAura.name}</span>`
-            : currentAura.rarity === "Mythic"
-              ? `<span class="rainbow-text">${currentAura.name}</span>`
-              : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
+        ? isGrandMaster
+          ? `<span class="gradient-text-grandmaster">${currentAura.name}</span>`
+          : isMaster
+            ? `<span class="gradient-text-master">${currentAura.name}</span>`
+            : currentAura.rarity === "Godly"
+              ? `<span class="gradient-text">${currentAura.name}</span>`
+              : currentAura.rarity === "Mythic"
+                ? `<span class="rainbow-text">${currentAura.name}</span>`
+                : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
         : "None";
       message.innerHTML = customMessage || `⚠️ You have a ${currentAura.rarity} aura: ${auraNameStyled}. Are you sure you want to roll it away?`;
       popup.classList.add("active");
