@@ -315,22 +315,23 @@
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
-        <h4>Update 5.0</h4>
+        <h4>Update 5.0 (03.07.25)</h4>
         <ul>
           <li>💰 Added coin rewards: Master (80 coins), Grand-Master (150 coins).</li>
           <li>⚠️ Fixed Epic aura warning to trigger only at Rebirth 0, not 2 or higher.</li>
           <li>🏆 Updated best aura tracking to use rank instead of rarity (e.g., notbenox over vaschili).</li>
           <li>🔧 Enhanced luck boost: Adjusted post-rebirth probabilities to make Legendary-Mythic-Master auras more common and Basic-Uncommon less common with higher luck percentages.</li>
+          <li>🛠️ Patched infinite coin glitch: Fixed issue where 10 coins were gained by having a Legendary or better aura, pressing Super Roll, and selecting 'No' on the warning popup.</li>
         </ul>
-        <h4>Update 4.0</h4>
+        <h4>Update 4.0 (03.07.25)</h4>
         <ul>
           <li>⚠️ Fixed Epic aura warning to trigger only at Rebirth 0, not 2 or higher.</li>
-          <li>🏆 Updated best aura to use rank instead of rarity for accurate tracking (e.g., notbenox over vaschili).</li>
+          <li>🏆 Updated best aura to use rank instead of rarity for accurate testing (e.g., notbenox over vaschili).</li>
           <li>🔧 Enhanced luck boost: Basic/Uncommon less common, Legendary-Master more common with higher luck; adjusted post-rebirth probabilities.</li>
           <li>🌟 Added 'Benox' Master aura (0.2%) and renamed 'Setrox' to 'Grand-Master' 🏆 (0.01%), neither required for rebirth.</li>
           <li>🍀 Super Roll page now displays luck boost +500% only while on that tab.</li>
         </ul>
-        <h4>Update 3.0</h4>
+        <h4>Update 3.0 (03.07.25)</h4>
         <ul>
           <li>🎨 Adjusted aura chances with 'Balanced Boost' variation, increasing rare aura probabilities.</li>
           <li>💰 Updated coin rewards: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50).</li>
@@ -339,14 +340,14 @@
           <li>🍀 Clarified Super Roll provides +500% more luck.</li>
           <li>💡 Displayed coins earned per rarity in middle stats.</li>
         </ul>
-        <h4>Update 2.0</h4>
+        <h4>Update 2.0 (03.07.25)</h4>
         <ul>
           <li>⏱️ Added Rolling Cooldown upgrade with 3 levels (12, 30, 50 Coins).</li>
           <li>🔄 Reduced cooldown from 1s → 0.95s (Level 1), 0.95s → 0.875s (Level 2), 0.875s → 0.75s (Level 3).</li>
           <li>💾 Ensured cooldown upgrade state is saved and loaded.</li>
           <li>📝 Displayed next cooldown upgrade effect with arrows (e.g., "1s → 0.95s").</li>
         </ul>
-        <h4>Update 1.0</h4>
+        <h4>Update 1.0 (03.07.25)</h4>
         <ul>
           <li>✨ Normalized aura chances to 100% with unique values.</li>
           <li>🔮 Added Luck Upgrades (10 levels, coin-based).</li>
@@ -785,13 +786,9 @@
         } else if (!pendingSuperRoll) {
           performRoll(false);
         }
-      } else if (pendingSuperRoll) {
-        // Refund coins if "No" on Super Roll
-        coins += 10;
-        updateDisplay(pendingSuperRoll);
-        saveGame();
+      } else {
+        pendingSuperRoll = false; // Cancel without refunding coins
       }
-      pendingSuperRoll = false;
     }
 
     setInterval(updatePlaytime, 60000);
