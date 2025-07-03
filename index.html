@@ -235,7 +235,7 @@
       left: 50%;
       transform: translateX(-50%);
       width: 500px;
-      height: 150px;
+      height: 200px;
       background: linear-gradient(135deg, #1e1e2f, #2f1e2e);
       border-radius: 15px;
       box-shadow: 0 0 30px #ff69b4;
@@ -248,12 +248,12 @@
 
     .casino-frame.active {
       display: block;
-      animation: rollDown 1.6s ease forwards, fadeOut 0.4s ease 1.6s forwards;
+      animation: rollDown 1.2s ease forwards, fadeOut 0.4s ease 1.2s forwards;
     }
 
     @keyframes rollDown {
       from { top: -300px; }
-      to { top: 20px; }
+      to { top: 50px; }
     }
 
     @keyframes fadeOut {
@@ -262,14 +262,15 @@
     }
 
     .casino-aura {
-      animation: scrollAuras 1.6s linear;
-      margin: 0.4em 0;
+      animation: scrollAuras 1.2s linear;
+      margin: 0.3em 0;
       transition: transform 0.3s ease;
     }
 
     @keyframes scrollAuras {
-      0% { transform: translateY(150%); }
-      100% { transform: translateY(-100%); }
+      0% { transform: translateY(200%); }
+      80% { transform: translateY(-240%); }
+      100% { transform: translateY(-300%); }
     }
 
     .casino-aura.land {
@@ -280,6 +281,27 @@
       0% { transform: scale(1.5); opacity: 0.8; }
       50% { transform: scale(1.2); opacity: 1; }
       100% { transform: scale(1); opacity: 1; }
+    }
+
+    .shining-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 60%;
+      border: 3px solid #ff69b4;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #ff69b4, 0 0 40px #00ffcc;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 16;
+      animation: shine 1.5s infinite;
+    }
+
+    @keyframes shine {
+      0% { box-shadow: 0 0 20px #ff69b4, 0 0 40px #00ffcc; }
+      50% { box-shadow: 0 0 30px #ff69b4, 0 0 50px #00ffcc; }
+      100% { box-shadow: 0 0 20px #ff69b4, 0 0 40px #00ffcc; }
     }
 
     .footer {
@@ -374,31 +396,27 @@
       <p>Cooldown Upgrade Stage: <span id="cooldownUpgrades">0/3</span></p>
       <button class="button" onclick="rebirth()">💫 Rebirth</button>
       <div class="requirements" id="rebirthReqs"></div>
-      <p>Rebirth Stage: <span id="rebirthStage">0/5</span></p>
+      <p>Rebirth Stage: <span id="rebirthStage">0/7</span></p>
     </div>
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <p><em>Note: Update 1.0 was the initial version (not logged separately).</em></p>
         <h4>Update 3.0 (03.07.25)</h4>
+        <ul>
+          <li>⚙️ Enhanced casino frame: Faster roll-down (1.2s to 50px), rolls ~30 auras (fast initially, slows near end), adds shining frame for obtained aura.</li>
+          <li>🎨 Fixed duplicate aura bug in rolls, ensures unique selection.</li>
+          <li>💪 Nerfed rebirths: R1 (+15%), R2 (+40%), R3 (+60%), R4 (+100%), R5 (+150%), added R6 (Benox, 800 Coins, +200%), R7 (Setrox, 1500 Coins, +250%).</li>
+          <li>🔮 Nerfed luck upgrades: U1 (10 Coins, +2%), U2 (16 Coins, +5%), U3 (20 Coins, +10%), U4 (30 Coins, +12%), U5 (50 Coins, +15%), U6 (80 Coins, +17%), U7 (150 Coins, +20%), U8 (325 Coins, +25%), U9 (750 Coins, +30%), U10 (2000 Coins, +35%).</li>
+          <li>🐛 Ensured aura is obtained from landed frame.</li>
+        </ul>
+        <h4>Update 2.0 (03.07.25)</h4>
         <ul>
           <li>⚙️ Improved casino frame: Rolls ~20 existing auras with rarity-based probabilities (Basic 25%, Uncommon 20%, Rare 18%, Legendary 13%, Mythic 5%, Godly 3%, Master 1%, Grand-Master 0.5%), lands on obtained aura with smooth animation.</li>
           <li>⚠️ Fixed Epic aura warning: Only triggers at Rebirth 0 if required for next rebirth, no warning otherwise unless Legendary or better.</li>
           <li>🎨 Adjusted UI: Reduced menu and button sizes for better layout, improved animation smoothness.</li>
           <li>🍀 Enhanced Super Roll: Increases rarity of Legendary+ auras by 1.5x.</li>
           <li>🐛 Fixed rolling bugs: Ensures aura is set and displayed, maintains consistent speed.</li>
-        </ul>
-        <h4>Update 2.0 (03.07.25)</h4>
-        <ul>
-          <li>🎨 Adjusted aura chances with 'Balanced Boost' variation, increasing rare aura probabilities.</li>
-          <li>💰 Updated coin rewards: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50), Master (80), Grand-Master (150).</li>
-          <li>🌟 Added 'Benox' Master aura (0.2%) and 'Setrox' Grand-Master aura (0.01%), neither required for rebirth.</li>
-          <li>⚠️ Added warning popup for rolling away Legendary or better auras with 'Yes/No' options.</li>
-          <li>🍀 Clarified Super Roll provides +500% more luck, displayed only on Super Roll tab.</li>
-          <li>💡 Displayed coins earned per rarity in middle stats.</li>
-          <li>🛠️ Patched infinite coin glitch: Fixed issue where 10 coins were gained by having a Legendary or better aura, pressing Super Roll, and selecting 'No' on the warning popup.</li>
-          <li>⚠️ Fixed Epic aura warning to trigger only at Rebirth 0, not 2 or higher.</li>
-          <li>🏆 Updated best aura tracking to use rank instead of rarity (e.g., notbenox over vaschili).</li>
-          <li>🔧 Enhanced luck boost: Adjusted post-rebirth probabilities to make Legendary-Mythic-Master auras more common and Basic-Uncommon less common with higher luck percentages.</li>
         </ul>
         <h4>Update 1.0 (03.07.25)</h4>
         <ul>
@@ -513,11 +531,13 @@
       }
 
       const rebirthRequirements = [
-        { rarity: "Epic", coins: 15, luck: 20 },
-        { rarity: "Legendary", coins: 35, luck: 50 },
-        { name: "Valentin kö 8", coins: 90, luck: 80 },
-        { name: "adi pr 69", coins: 200, luck: 170 },
-        { name: "Elox487", coins: 500, luck: 250 }
+        { rarity: "Epic", coins: 15, luck: 15 },
+        { rarity: "Legendary", coins: 35, luck: 40 },
+        { name: "Valentin kö 8", coins: 90, luck: 60 },
+        { name: "adi pr 69", coins: 200, luck: 100 },
+        { name: "Elox487", coins: 500, luck: 150 },
+        { name: "Benox", coins: 800, luck: 200 },
+        { name: "Setrox", coins: 1500, luck: 250 }
       ];
       const nextReq = rebirthRequirements[rebirthStage];
 
@@ -544,6 +564,27 @@
       cooldown = true;
       document.getElementById("rollBtn").disabled = true;
       document.getElementById("superRollBtn").disabled = true;
+      const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
+      const roll = Math.random() * 100;
+      let cumulative = 0;
+      let availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
+      const adjustedAuras = adjustChances(availableAuras, effectiveLuck);
+      const totalChance = adjustedAuras.reduce((sum, aura) => sum + aura.chance, 0);
+      const normalizedAuras = adjustedAuras.map(aura => ({
+        ...aura,
+        chance: (aura.chance / totalChance) * 100
+      }));
+
+      for (let aura of normalizedAuras) {
+        cumulative += aura.chance;
+        if (roll <= cumulative) {
+          currentAura = auras.find(a => a.name === aura.name);
+          if (!bestAura || currentAura.rank > bestAura.rank || (currentAura.rank === bestAura.rank && auras.findIndex(a => a.name === currentAura.name) > auras.findIndex(a => a.name === bestAura.name))) bestAura = currentAura;
+          addCoins(currentAura.rarity);
+          break;
+        }
+      }
+
       startCasinoAnimation(isSuperRoll);
       const cooldownTimes = [2000, 1900, 1750, 1500];
       setTimeout(() => {
@@ -560,27 +601,12 @@
       const casinoFrame = document.getElementById("casinoFrame");
       casinoFrame.innerHTML = "";
       casinoFrame.classList.add("active");
+      const shiningFrame = document.createElement("div");
+      shiningFrame.className = "shining-frame";
+      casinoFrame.appendChild(shiningFrame);
 
-      const rollAuras = [];
-      for (let i = 0; i < 20; i++) {
-        const roll = Math.random() * 100;
-        let cumulative = 0;
-        if (roll <= 25) rollAuras.push(getRandomAuraByRarity("Basic"));
-        else if (roll <= 45) rollAuras.push(getRandomAuraByRarity("Uncommon"));
-        else if (roll <= 63) rollAuras.push(getRandomAuraByRarity("Rare"));
-        else if (roll <= 76) rollAuras.push(getRandomAuraByRarity("Legendary"));
-        else if (roll <= 81) rollAuras.push(getRandomAuraByRarity("Mythic"));
-        else if (roll <= 84) rollAuras.push(getRandomAuraByRarity("Godly"));
-        else if (roll <= 85) rollAuras.push(getRandomAuraByRarity("Master"));
-        else rollAuras.push(getRandomAuraByRarity("Grand-Master"));
-      }
-
-      if (isSuperRoll) {
-        // Boost rare auras for Super Roll
-        rollAuras.forEach(aura => {
-          if (aura.rank >= 5) aura.baseChance *= 1.5;
-        });
-      }
+      const rollAuras = getUniqueRollAuras(30, isSuperRoll);
+      rollAuras[29] = currentAura; // Ensure the last aura is the obtained one
 
       let html = "";
       rollAuras.forEach((aura, index) => {
@@ -591,17 +617,39 @@
             : aura.color === "gradient-master"
               ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
               : `color:${aura.color}`;
-        html += `<div class="casino-aura" style="${colorStyle}">${aura.name} (${aura.rarity})</div>`;
-        if (index === 19 && currentAura) {
-          html += `<div class="casino-aura land" style="${colorStyle}">🎉 Obtained: ${currentAura.name} (${currentAura.rarity})! 🎉</div>`;
+        if (index === 29) {
+          html += `<div class="casino-aura land" style="${colorStyle} position: relative; z-index: 17;">🎉 Obtained: ${aura.name} (${aura.rarity})! 🎉</div>`;
+        } else {
+          html += `<div class="casino-aura" style="${colorStyle}">${aura.name} (${aura.rarity})</div>`;
         }
       });
-      casinoFrame.innerHTML = html;
+      casinoFrame.innerHTML += html;
     }
 
     function endCasinoAnimation() {
       const casinoFrame = document.getElementById("casinoFrame");
       casinoFrame.classList.remove("active");
+      casinoFrame.innerHTML = "";
+    }
+
+    function getUniqueRollAuras(count, isSuperRoll) {
+      const shuffledAuras = [...auras].sort(() => Math.random() - 0.5);
+      const rollAuras = [];
+      for (let i = 0; i < count - 1; i++) {
+        const roll = Math.random() * 100;
+        let selectedAura = null;
+        if (roll <= 25) selectedAura = getRandomAuraByRarity("Basic");
+        else if (roll <= 45) selectedAura = getRandomAuraByRarity("Uncommon");
+        else if (roll <= 63) selectedAura = getRandomAuraByRarity("Rare");
+        else if (roll <= 76) selectedAura = getRandomAuraByRarity("Legendary");
+        else if (roll <= 81) selectedAura = getRandomAuraByRarity("Mythic");
+        else if (roll <= 84) selectedAura = getRandomAuraByRarity("Godly");
+        else if (roll <= 85) selectedAura = getRandomAuraByRarity("Master");
+        else selectedAura = getRandomAuraByRarity("Grand-Master");
+        if (!rollAuras.includes(selectedAura)) rollAuras.push(selectedAura);
+        else i--; // Retry if duplicate
+      }
+      return rollAuras;
     }
 
     function getRandomAuraByRarity(rarity) {
@@ -637,6 +685,7 @@
           if (aura.rank >= 5) adjustedChance *= 1.3;
           if (aura.rank >= 7) adjustedChance *= 1 + (luck - 70) * 0.005;
         }
+        if (aura.rank >= 5 && isSuperRoll) adjustedChance *= 1.5; // Super Roll boost for rare auras
         return { ...aura, chance: adjustedChance };
       });
     }
@@ -659,13 +708,14 @@
         alert("✅ Maximum Luck Upgrades reached!");
         return;
       }
-      const upgradeCosts = [5, 8, 10, 14, 19, 28, 40, 55, 70, 100];
+      const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000];
+      const luckBoosts = [2, 5, 10, 12, 15, 17, 20, 25, 30, 35];
       const cost = upgradeCosts[luckUpgrades];
       if (coins >= cost) {
         coins -= cost;
         luckUpgrades++;
-        luckBoost += 10;
-        alert(`🔮 Luck Upgrade ${luckUpgrades}/10 completed! +10% Luck!`);
+        luckBoost += luckBoosts[luckUpgrades - 1];
+        alert(`🔮 Luck Upgrade ${luckUpgrades}/10 completed! +${luckBoosts[luckUpgrades - 1]}% Luck!`);
         updateDisplay();
         saveGame();
       } else {
@@ -697,11 +747,13 @@
         return;
       }
       const rebirthRequirements = [
-        { rarity: "Epic", coins: 15, luck: 20 },
-        { rarity: "Legendary", coins: 35, luck: 50 },
-        { name: "Valentin kö 8", coins: 90, luck: 80 },
-        { name: "adi pr 69", coins: 200, luck: 170 },
-        { name: "Elox487", coins: 500, luck: 250 }
+        { rarity: "Epic", coins: 15, luck: 15 },
+        { rarity: "Legendary", coins: 35, luck: 40 },
+        { name: "Valentin kö 8", coins: 90, luck: 60 },
+        { name: "adi pr 69", coins: 200, luck: 100 },
+        { name: "Elox487", coins: 500, luck: 150 },
+        { name: "Benox", coins: 800, luck: 200 },
+        { name: "Setrox", coins: 1500, luck: 250 }
       ];
       if (rebirthStage >= rebirthRequirements.length) {
         alert("✅ Maximum Rebirth reached!");
@@ -714,11 +766,11 @@
         luckBoost += req.luck;
         rebirthStage++;
         currentAura = null;
-        alert(`💫 Rebirth ${rebirthStage}/5 completed! +${req.luck}% Luck!`);
+        alert(`💫 Rebirth ${rebirthStage}/7 completed! +${req.luck}% Luck!`);
         updateDisplay();
         saveGame();
       } else {
-        alert(`⚠️ Requires ${req.name || req.rarity} Aura and ${req.coins} Coins for Rebirth ${rebirthStage + 1}/5!`);
+        alert(`⚠️ Requires ${req.name || req.rarity} Aura and ${req.coins} Coins for Rebirth ${rebirthStage + 1}/7!`);
       }
     }
 
@@ -751,7 +803,7 @@
       document.getElementById("coins").textContent = coins;
       document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/10`;
       document.getElementById("cooldownUpgrades").textContent = `${cooldownLevel}/3`;
-      document.getElementById("rebirthStage").textContent = `${rebirthStage}/5`;
+      document.getElementById("rebirthStage").textContent = `${rebirthStage}/7`;
       document.getElementById("totalRolls").textContent = totalRolls;
       document.getElementById("superRolls").textContent = superRolls;
       document.getElementById("currentLuck").textContent = `${luckBoost}%`;
@@ -770,11 +822,13 @@
     function updateRebirthRequirements() {
       const reqs = document.getElementById("rebirthReqs");
       const rebirthRequirements = [
-        { rarity: "Epic", coins: 15, luck: 20 },
-        { rarity: "Legendary", coins: 35, luck: 50 },
-        { name: "Valentin kö 8", coins: 90, luck: 80 },
-        { name: "adi pr 69", coins: 200, luck: 170 },
-        { name: "Elox487", coins: 500, luck: 250 }
+        { rarity: "Epic", coins: 15, luck: 15 },
+        { rarity: "Legendary", coins: 35, luck: 40 },
+        { name: "Valentin kö 8", coins: 90, luck: 60 },
+        { name: "adi pr 69", coins: 200, luck: 100 },
+        { name: "Elox487", coins: 500, luck: 150 },
+        { name: "Benox", coins: 800, luck: 200 },
+        { name: "Setrox", coins: 1500, luck: 250 }
       ];
       if (rebirthStage >= rebirthRequirements.length) {
         reqs.innerHTML = "✅ Maximum Rebirth reached! 🌟";
@@ -788,9 +842,9 @@
         Godly: "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
       };
       const auraText = req.name
-        ? `<span style="${req.name === 'Elox487' ? colorMap.Godly : colorMap.Mythic}">${req.name}</span>`
+        ? `<span style="${req.name === 'Elox487' ? colorMap.Godly : req.name === 'Benox' ? 'background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : req.name === 'Setrox' ? 'background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : colorMap.Mythic}">${req.name}</span>`
         : `<span style="color:${colorMap[req.rarity]}">${req.rarity}</span>`;
-      reqs.innerHTML = `💫 Next Rebirth: ${auraText} + ${req.coins} Coins → <strong>+${req.luck}% Luck</strong><br>Rebirth Stage: <span id="rebirthStage">${rebirthStage}/5</span>`;
+      reqs.innerHTML = `💫 Next Rebirth: ${auraText} + ${req.coins} Coins → <strong>+${req.luck}% Luck</strong><br>Rebirth Stage: <span id="rebirthStage">${rebirthStage}/7</span>`;
     }
 
     function updateLuckUpgradeRequirements() {
@@ -799,8 +853,9 @@
         reqs.innerHTML = "✅ Maximum Luck Upgrades reached! 🌟";
         return;
       }
-      const upgradeCosts = [5, 8, 10, 14, 19, 28, 40, 55, 70, 100];
-      reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+10% Luck</strong><br>Luck Upgrade Stage: <span id="luckUpgrades">${luckUpgrades}/10</span>`;
+      const upgradeCosts = [10, 16, 20, 30, 50, 80, 150, 325, 750, 2000];
+      const luckBoosts = [2, 5, 10, 12, 15, 17, 20, 25, 30, 35];
+      reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+${luckBoosts[luckUpgrades]}% Luck</strong><br>Luck Upgrade Stage: <span id="luckUpgrades">${luckUpgrades}/10</span>`;
     }
 
     function updateCooldownRequirements() {
