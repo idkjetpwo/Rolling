@@ -1,1307 +1,584 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculator Web Upgrade</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎰 Aura Roller Game</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, sans-serif;
-    }
-
     body {
-      padding: 20px;
-      background: #f0f0f0;
-      position: relative;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2f1e2e);
+      color: white;
+      margin: 0;
+      padding: 2em;
+      animation: fadeIn 1.5s ease;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
       position: relative;
-      justify-content: center;
     }
 
-    .coin-display {
-      padding: 5px 10px;
-      background: #f0f0f0;
-      border-radius: 5px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      position: absolute;
-      left: 0;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .coin-icon {
-      font-size: 16px;
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
     }
 
     h1 {
-      text-align: center;
-      flex: 0 1 auto;
-      max-width: 200px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 2.5em;
+      margin: 0.5em 0;
+      text-shadow: 0 0 10px #ff69b4;
     }
 
-    #calcPanel, #gamePanel {
-      max-width: 400px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      position: relative;
+    .aura {
+      font-size: 2em;
+      margin: 2em 0;
+      min-height: 2.5em;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
-    #gamePanel {
-      display: none;
-      text-align: center;
+    .aura.animate {
+      animation: bounceFade 0.8s ease;
     }
 
-    #display {
-      width: 100%;
-      padding: 10px;
-      font-size: 24px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      text-align: right;
+    @keyframes bounceFade {
+      0% { transform: scale(1); opacity: 0; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); }
     }
 
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-    }
-
-    button {
-      padding: 15px;
-      font-size: 18px;
-      border: none;
-      background: #e0e0e0;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #d0d0d0;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    #history {
-      max-width: 400px;
-      margin: 20px auto;
-      background: white;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-      display: none;
-    }
-
-    .history-entry {
-      padding: 5px 0;
-      border-bottom: 1px solid #eee;
-    }
-
-    .history-entry:last-child {
-      border-bottom: none;
-    }
-
-    .top-right {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      gap: 15px;
-      align-items: center;
-    }
-
-    .game-icon, .theme-icon, .menu-icon {
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .game-icon:disabled, .theme-icon:disabled, .menu-icon:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .dropdown {
-      display: none;
-      position: absolute;
-      top: 40px;
-      right: 0;
-      background: white;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
-      flex-direction: column;
-      z-index: 1;
-      min-width: 150px;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .dropdown.open {
-      display: flex;
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .dropdown button {
-      padding: 10px;
-      background: white;
-      border: none;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-      text-align: left;
-    }
-
-    .dropdown button:last-child {
-      border-bottom: none;
-    }
-
-    .dropdown button:hover {
-      background: #f0f0f0;
-    }
-
-    .dropdown button.disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-
-    #currentAura {
-      font-size: 24px;
-      margin: 20px 0;
-    }
-
-    .aura-Common { color: gray; }
-    .aura-Rare { color: green; }
-    .aura-Epic { color: blue; }
-    .aura-Legendary { color: orange; }
-    .aura-Mythical { color: red; }
-    .aura-Exotic { color: purple; }
-    .aura-Godly {
-      background: linear-gradient(45deg, yellow, orange, yellow);
+    .rainbow-text {
+      background: linear-gradient(90deg, red, orange, yellow, green, blue, violet);
       background-size: 200%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: godlyGradient 3s ease infinite;
-      position: relative;
-      display: inline-block;
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    }
-
-    .aura-Godly::before {
-      content: '✨';
-      position: absolute;
-      left: -20px;
-      top: 0;
-      animation: sparkle 1s infinite;
-    }
-
-    .aura-Godly::after {
-      content: '✨';
-      position: absolute;
-      right: -20px;
-      top: 0;
-      animation: sparkle 1s infinite 0.5s;
-    }
-
-    .aura-Godly .halo {
-      position: absolute;
-      top: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 215, 0, 0.5), transparent);
-      animation: haloGlow 2s ease-in-out infinite;
-    }
-
-    .aura-Secret {
-      color: black;
-      position: relative;
-      display: inline-block;
-      text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
-    }
-
-    .aura-Secret::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle, rgba(0, 0, 0, 0.3), transparent);
-      animation: shadowPulse 3s ease-in-out infinite;
-    }
-
-    @keyframes godlyGradient {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    @keyframes sparkle {
-      0% { opacity: 0; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.2); }
-      100% { opacity: 0; transform: scale(1); }
-    }
-
-    @keyframes haloGlow {
-      0% { opacity: 0.5; transform: translateX(-50%) scale(1); }
-      50% { opacity: 1; transform: translateX(-50%) scale(1.2); }
-      100% { opacity: 0.5; transform: translateX(-50%) scale(1); }
-    }
-
-    @keyframes shadowPulse {
-      0% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(1.1); }
-      100% { opacity: 0.3; transform: scale(1); }
-    }
-
-    .secret-aura-animation {
-      animation: secretAura 2s ease-in-out;
-    }
-
-    @keyframes secretAura {
-      0% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px #000; }
-      50% { transform: scale(1.2); opacity: 0.5; text-shadow: 0 0 20px #000; }
-      100% { transform: scale(1); opacity: 1; text-shadow: 0 0 5px #000; }
-    }
-
-    .locked {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .msg-box {
-      position: fixed;
-      bottom: 20px; /* Moved to bottom */
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-      z-index: 1000;
-      text-align: center;
-      opacity: 0;
-      transform: translateX(-50%) translateY(20px); /* Adjusted for bottom positioning */
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-
-    .msg-box.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .warning-frame {
-      position: fixed;
-      bottom: 20px; /* Moved to bottom */
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-      z-index: 1001;
-      text-align: center;
-      max-width: 300px;
-    }
-
-    .warning-frame p {
-      margin-bottom: 20px;
-    }
-
-    .warning-frame button {
-      margin: 0 10px;
-      padding: 10px 20px;
-    }
-
-    .warning-frame button:disabled {
-      opacity: 1;
-      cursor: pointer;
-    }
-
-    .dark-mode {
-      background: #222;
-      color: white;
-    }
-
-    .dark-mode #calcPanel,
-    .dark-mode #gamePanel,
-    .dark-mode #history,
-    .dark-mode .dropdown {
-      background: #333;
-      color: white;
-    }
-
-    .dark-mode button {
-      background: #444;
-      color: white;
-    }
-
-    .dark-mode button:hover {
-      background: #555;
-    }
-
-    .dark-mode #display {
-      background: #444;
-      color: white;
-      border-color: #555;
-    }
-
-    .dark-mode .coin-display {
-      background: #333;
-      color: white;
-    }
-
-    .dark-mode .warning-frame {
-      background: #333;
-      color: white;
-    }
-
-    .theme-blue {
-      background: #e3f2fd;
-    }
-
-    .theme-blue #calcPanel,
-    .theme-blue #gamePanel,
-    .theme-blue #history {
-      background: #bbdefb;
-    }
-
-    .theme-tech {
-      background: #1a1a1a;
-      color: #00ff00;
-    }
-
-    .theme-tech #calcPanel,
-    .theme-tech #gamePanel,
-    .theme-tech #history {
-      background: #2a2a2a;
-      color: #00ff00;
-    }
-
-    .theme-tech button {
-      background: #3a3a3a;
-      color: #00ff00;
-    }
-
-    .theme-tech button:hover {
-      background: #4a4a4a;
-    }
-
-    .theme-neon {
-      background: #000;
-      color: #0ff;
-    }
-
-    .theme-neon #calcPanel,
-    .theme-neon #gamePanel,
-    .theme-neon #history {
-      background: rgba(0, 255, 255, 0.1);
-      color: #0ff;
-      border: 2px solid #0ff;
-      box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-    }
-
-    .theme-neon button {
-      background: rgba(0, 255, 255, 0.2);
-      color: #0ff;
-      border: 1px solid #0ff;
-      box-shadow: 0 0 5px #0ff;
-      text-shadow: 0 0 5px #0ff;
-    }
-
-    .theme-neon button:hover {
-      background: rgba(0, 255, 255, 0.3);
-      box-shadow: 0 0 10px #0ff;
-    }
-
-    .theme-neon .coin-display {
-      background: rgba(0, 255, 255, 0.2);
-      color: #0ff;
-      border: 1px solid #0ff;
-      box-shadow: 0 0 5px #0ff;
-    }
-
-    .theme-rainbow {
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
-      background-size: 400%;
-      animation: rainbow 15s ease infinite;
+      animation: rainbow 3s linear infinite;
     }
 
     @keyframes rainbow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+      0% { background-position: 0%; }
+      100% { background-position: 200%; }
     }
 
-    .theme-rainbow #calcPanel,
-    .theme-rainbow #gamePanel,
-    .theme-rainbow #history {
-      background: rgba(255, 255, 255, 0.8);
-      color: black;
-    }
-
-    .theme-rainbow button {
-      color: black;
-    }
-
-    .theme-rainbow .coin-display {
-      color: black;
-    }
-
-    .theme-rainbow h1,
-    .theme-rainbow .signature {
-      color: black;
-    }
-
-    .theme-rainbow-plus {
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet, red);
-      background-size: 600%;
-      animation: rainbowPlus 10s ease infinite;
-    }
-
-    @keyframes rainbowPlus {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-
-    .theme-rainbow-plus #calcPanel,
-    .theme-rainbow-plus #gamePanel,
-    .theme-rainbow-plus #history {
-      background: rgba(255, 255, 255, 0.9);
-      border: 2px solid transparent;
-      border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-      animation: frameGlow 5s ease infinite;
-      color: black;
-    }
-
-    .theme-rainbow-plus button {
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
-      background-size: 400%;
-      color: white;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      animation: buttonGlow 5s ease infinite;
-    }
-
-    .theme-rainbow-plus button:hover {
-      background: linear-gradient(45deg, violet, indigo, blue, green, yellow, orange, red);
-      background-size: 400%;
-    }
-
-    .theme-rainbow-plus .coin-display {
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
-      background-size: 400%;
-      color: white;
-      border: 1px solid transparent;
-      border-image: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet) 1;
-      animation: frameGlow 5s ease infinite;
-    }
-
-    .theme-rainbow-plus h1,
-    .theme-rainbow-plus .signature {
-      color: black;
-      text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-    }
-
-    .theme-rainbow-plus .game-icon,
-    .theme-rainbow-plus .theme-icon,
-    .theme-rainbow-plus .menu-icon {
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
-      background-size: 400%;
+    .gradient-text {
+      background: linear-gradient(90deg, black, white);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: iconGlow 5s ease infinite;
+      animation: pulse 2s infinite;
     }
 
-    @keyframes frameGlow {
-      0% { box-shadow: 0 0 15px rgba(255, 0, 0, 0.5); }
-      16% { box-shadow: 0 0 15px rgba(255, 165, 0, 0.5); }
-      33% { box-shadow: 0 0 15px rgba(255, 255, 0, 0.5); }
-      50% { box-shadow: 0 0 15px rgba(0, 255, 0, 0.5); }
-      66% { box-shadow: 0 0 15px rgba(0, 0, 255, 0.5); }
-      83% { box-shadow: 0 0 15px rgba(75, 0, 130, 0.5); }
-      100% { box-shadow: 0 0 15px rgba(238, 130, 238, 0.5); }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
     }
 
-    @keyframes buttonGlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .button {
+      padding: 1em 2em;
+      font-size: 1.2em;
+      margin: 0.5em;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    @keyframes iconGlow {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .roll-btn {
+      background: #ff69b4;
     }
 
-    .theme-fire {
-      background: linear-gradient(45deg, red, orange, yellow);
-      background-size: 400%;
-      animation: fire 10s ease infinite;
+    .super-roll-btn {
+      background: #00ffcc;
+      animation: glow 1.5s infinite;
     }
 
-    @keyframes fire {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 10px #00ffcc; }
+      50% { box-shadow: 0 0 20px #00ffcc; }
     }
 
-    .theme-fire #calcPanel,
-    .theme-fire #gamePanel,
-    .theme-fire #history {
-      background: rgba(255, 255, 255, 0.8);
-      border: 2px solid #ff4500;
-      box-shadow: 0 0 10px #ff4500;
-      color: black;
-    }
-
-    .theme-fire button {
-      background: linear-gradient(45deg, #ff4500, #ffa500);
-      color: black;
-      text-shadow: none;
-    }
-
-    .theme-fire button:hover {
-      background: linear-gradient(45deg, #ff5500, #ffb500);
-    }
-
-    .theme-fire .coin-display {
-      background: linear-gradient(45deg, #ff4500, #ffa500);
-      color: black;
-    }
-
-    .theme-fire h1,
-    .theme-fire .signature {
-      color: black;
-    }
-
-    .aura-chances {
-      margin: 20px 0;
-      text-align: left;
-    }
-
-    .aura-chances p {
-      margin: 5px 0;
-    }
-
-    .best-aura {
-      margin: 20px 0;
-      font-size: 18px;
-    }
-
-    .signature {
-      text-align: center;
-      padding: 10px 0;
-      font-size: 14px;
-      color: #666;
-    }
-
-    .roll-buttons {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    #rollBtn {
-      background: linear-gradient(45deg, #28a745, #34c759);
-      color: white;
-    }
-
-    #rollBtn:hover {
-      background: linear-gradient(45deg, #218838, #2db34a);
-    }
-
-    #superRollBtn {
-      position: relative;
-      background: linear-gradient(45deg, red, orange, yellow, green, blue, indigo, violet);
-      background-size: 400%;
-      color: white;
-      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      animation: buttonGlow 5s ease infinite;
-    }
-
-    #superRollBtn::after {
-      content: '5x Luck!';
+    .menu-btn {
+      background: #4b0082;
       position: absolute;
-      top: 0;
-      right: -10px;
-      background: red;
+      top: 20px;
+      left: 20px;
       color: white;
-      padding: 2px 5px;
-      font-size: 12px;
-      transform: rotate(45deg);
-      border-radius: 3px;
     }
 
-    @media (max-width: 600px) {
-      #calcPanel, #gamePanel, #history {
-        max-width: 100%;
-        padding: 15px;
-      }
+    .button:disabled {
+      background: #999;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
 
-      .buttons {
-        gap: 8px;
-      }
+    .button:hover:not(:disabled) {
+      transform: scale(1.05);
+    }
 
-      button {
-        padding: 12px;
-        font-size: 16px;
-      }
+    .dropdown {
+      position: absolute;
+      top: 80px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 12px;
+      padding: 1em;
+      display: none;
+      min-width: 250px;
+      animation: slideIn 0.5s ease;
+      z-index: 10;
+    }
 
-      .top-right {
-        gap: 10px;
-      }
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-      .dropdown {
-        min-width: 120px;
-      }
+    .dropdown.active {
+      display: block;
+    }
 
-      h1 {
-        max-width: 150px;
-      }
+    .tabs {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1em;
+    }
 
-      .roll-buttons {
-        flex-direction: column;
-      }
+    .tab {
+      padding: 0.5em 1em;
+      cursor: pointer;
+      background: #333;
+      border-radius: 8px;
+      transition: background 0.3s;
+      color: white;
+    }
 
-      #superRollBtn::after {
-        top: 5px;
-      }
+    .tab.active {
+      background: #ff69b4;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .info {
+      margin: 2em 0;
+      font-size: 1.2em;
+      line-height: 1.8em;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 1em;
+      border-radius: 12px;
+    }
+
+    .requirements {
+      margin: 1.5em 0;
+      font-size: 1em;
+      color: #ccc;
+    }
+
+    .result {
+      margin: 1em 0;
+      font-size: 1.1em;
+    }
+
+    .chances {
+      margin: 1em 0;
+      font-size: 1em;
+      color: #ccc;
+    }
+
+    .chances ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .chances li {
+      margin: 0.5em 0;
+    }
+
+    .coins-frame {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 0.5em 1em;
+      border-radius: 12px;
+      font-size: 1.2em;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.8em;
+      color: rgba(255, 255, 255, 0.3);
     }
   </style>
 </head>
 <body>
-  <div id="msgContainer"></div>
-  <div class="header">
-    <div class="coin-display" id="calcCoins"></div>
-    <h1 id="title">Set Calculator</h1>
-  </div>
-  <div class="top-right">
-    <i id="modeIcon" class="fas fa-gamepad game-icon" onclick="toggleMode()"></i>
-    <i class="fas fa-paint-brush theme-icon" onclick="toggleThemeDropdown()"></i>
-    <i class="fas fa-ellipsis-v menu-icon" onclick="toggleDropdown()"></i>
-    <div id="themeDropdown" class="dropdown">
-      <button id="defaultThemeBtn" onclick="selectTheme('')">Default</button>
-      <button id="blueThemeBtn" onclick="selectTheme('theme-blue')">Blue</button>
-      <button id="techThemeBtn" onclick="selectTheme('theme-tech')">Tech (5 🪙)</button>
-      <button id="neonBtn" onclick="selectTheme('theme-neon')">Neon (15 🪙)</button>
-      <button id="fireBtn" onclick="selectTheme('theme-fire')">Fire (40 🪙)</button>
-      <button id="rainbowBtn" onclick="selectTheme('theme-rainbow')">Rainbow (80 🪙)</button>
-      <button id="rainbowPlusBtn" onclick="selectTheme('theme-rainbow-plus')">Rainbow+ (200 🪙)</button>
+  <div class="coins-frame">💰 <span id="coins">0</span></div>
+  <button class="button menu-btn" onclick="toggleMenu()">📋 Menu</button>
+  <div class="dropdown" id="dropdown">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('normal-roll')">🎲 Normal</div>
+      <div class="tab" onclick="switchTab('super-roll')">🍀 Super</div>
+      <div class="tab" onclick="switchTab('upgrades')">🔮 Upgrades</div>
+      <div class="tab" onclick="switchTab('update-log')">📜 Log</div>
     </div>
-    <div id="dropdown" class="dropdown">
-      <button id="darkModeBtn" onclick="toggleTheme()">Toggle Dark Mode</button>
-      <button id="historyBtn" onclick="toggleHistory()">View History</button>
+    <div class="tab-content active" id="normal-roll">
+      <button class="button roll-btn" id="rollBtn" onclick="rollAura(false)">🎲 Normal Roll</button>
+      <div class="result" id="normalResult"></div>
+      <div class="chances" id="normalChances"></div>
+      <p>🎯 Total Rolls: <span id="totalRolls">0</span></p>
+      <p>🍀 Current Luck: <span id="currentLuck">0%</span></p>
+    </div>
+    <div class="tab-content" id="super-roll">
+      <button class="button super-roll-btn" id="superRollBtn" onclick="rollAura(true)">🍀 Super Roll (10 Coins)</button>
+      <div class="result" id="superResult"></div>
+      <p>🍀 Super Rolls: <span id="superRolls">0</span></p>
+      <p>🍀 Current Luck: <span id="currentLuckSuper">0%</span></p>
+    </div>
+    <div class="tab-content" id="upgrades">
+      <button class="button" onclick="upgradeLuck()">🔮 Luck Upgrade</button>
+      <div class="requirements" id="luckUpgradeReqs"></div>
+      <button class="button" onclick="rebirth()">💫 Rebirth</button>
+      <div class="requirements" id="rebirthReqs"></div>
+      <p>🔮 Luck Upgrade Stage: <span id="luckUpgrades">0/10</span></p>
+      <p>💫 Rebirth Stage: <span id="rebirthStage">0</span></p>
+    </div>
+    <div class="tab-content" id="update-log">
+      <div class="update-log">
+        <h3>📜 Update Log</h3>
+        <h4>Update 1.0</h4>
+        <ul>
+          <li>✨ Normalized aura chances to 100% with unique values.</li>
+          <li>🔮 Added Luck Upgrades (10 levels, coin-based).</li>
+          <li>💰 Introduced coins system (1–15 coins per roll).</li>
+          <li>🌈 Mythic auras now use rainbow gradient, Godly uses black-white.</li>
+          <li>🍀 Added Super Roll with +500% luck boost, costs 10 coins.</li>
+          <li>📋 New dropdown menu with Normal Roll, Super Roll, Upgrades, and Update Log tabs.</li>
+          <li>💫 Nerfed rebirths with new requirements (Epic to Godly, 15–500 coins).</li>
+          <li>🔄 Stacking luck boosts from upgrades, rebirths, and Super Roll.</li>
+          <li>🗑 Removed pedonardo aura for balance.</li>
+          <li>🎨 Improved UI with better spacing, animations, and emojis.</li>
+          <li>🔄 One-time rebirth reset for all players.</li>
+        </ul>
+      </div>
     </div>
   </div>
-
-  <div id="calcPanel">
-    <input type="text" id="display" readonly value="0">
-    <div class="buttons">
-      <button onclick="clearDisplay()">C</button>
-      <button onclick="backspace()">⌫</button>
-      <button onclick="append('/')">/</button>
-      <button onclick="append('*')">*</button>
-      <button onclick="append('7')">7</button>
-      <button onclick="append('8')">8</button>
-      <button onclick="append('9')">9</button>
-      <button onclick="append('-')">-</button>
-      <button onclick="append('4')">4</button>
-      <button onclick="append('5')">5</button>
-      <button onclick="append('6')">6</button>
-      <button onclick="append('+')">+</button>
-      <button onclick="append('1')">1</button>
-      <button onclick="append('2')">2</button>
-      <button onclick="append('3')">3</button>
-      <button onclick="calculate()">=</button>
-      <button onclick="append('0')" style="grid-column: span 2;">0</button>
-      <button onclick="append('.')">.</button>
+  <div class="container">
+    <h1>🎰 Aura Roller Game 🎉</h1>
+    <div class="aura" id="auraDisplay">✨ Roll to get your Aura! ✨</div>
+    <div class="info">
+      <p>🌈 Current Aura: <span id="currentAura">None</span></p>
+      <p>🏆 Best Aura: <span id="bestAura">None</span></p>
+      <p>⏰ Playtime: <span id="playtime">0m</span></p>
     </div>
   </div>
-  <div class="signature">by Setrox</div>
-
-  <div id="gamePanel">
-    <p>Rolls: <span id="rollCount">0</span></p>
-    <p>Current Aura: <span id="currentAura">None</span></p>
-    <div class="aura-chances">
-      <p><span class="aura-Common">Common</span>: 50%</p>
-      <p><span class="aura-Rare">Rare</span>: 30%</p>
-      <p><span class="aura-Epic">Epic</span>: 12%</p>
-      <p><span class="aura-Legendary">Legendary</span>: 6%</p>
-      <p><span class="aura-Mythical">Mythical</span>: 1.79%</p>
-      <p><span class="aura-Exotic">Exotic</span>: 0.2%</p>
-      <p><span class="aura-Godly">Godly</span>: 0.01%</p>
-    </div>
-    <div class="roll-buttons">
-      <button id="rollBtn" onclick="checkRoll()">Roll Aura</button>
-      <button id="superRollBtn" onclick="checkSuperRoll()">Super Roll (10 🪙)</button>
-    </div>
-    <p class="best-aura">Best Aura: <span id="bestAura">None</span></p>
-  </div>
-  <div class="signature" id="gameSignature" style="display: none;">by Setrox</div>
-
-  <div id="history"></div>
-
-  <div id="warningFrame" style="display: none;">
-    <p id="warningMessage"></p>
-    <button id="yesBtn" onclick="confirmRoll(true)">Yes</button>
-    <button id="noBtn" onclick="confirmRoll(false)">No</button>
-  </div>
+  <div class="footer">Made by Setrox</div>
 
   <script>
-    // Block DevTools Access
-    // Prevent common keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, etc.)
-    document.addEventListener('keydown', function(e) {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
-        (e.ctrlKey && e.key === 'U') // Ctrl+U for view source
-      ) {
-        e.preventDefault();
-        showMsg("Developer tools are disabled for this application.");
-      }
-    });
-
-    // Detect DevTools opening by checking window size changes (common on desktop)
-    let devToolsOpen = false;
-    const checkDevTools = () => {
-      const threshold = 160; // Approximate size of DevTools
-      const widthDiff = window.outerWidth - window.innerWidth > threshold;
-      const heightDiff = window.outerHeight - window.innerHeight > threshold;
-      if (widthDiff || heightDiff) {
-        if (!devToolsOpen) {
-          devToolsOpen = true;
-          showMsg("Developer tools are disabled for this application.");
-          // Optionally, you can redirect or disable functionality
-          // window.location.href = "about:blank"; // Redirect to blank page
-        }
-      } else {
-        devToolsOpen = false;
-      }
-    };
-    setInterval(checkDevTools, 1000);
-
-    // Prevent right-click (context menu) to block "Inspect" option
-    document.addEventListener('contextmenu', function(e) {
-      e.preventDefault();
-      showMsg("Right-click is disabled for this application.");
-    });
-
-    // Prevent touch gestures on mobile that might open DevTools
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 2) { // Detect multi-finger gestures
-        e.preventDefault();
-        showMsg("Multi-touch gestures are disabled for this application.");
-      }
-    });
-
-    // Block attempts to open DevTools via browser menu by overriding console
-    (function() {
-      const originalConsole = window.console;
-      window.console = {
-        log: function() { showMsg("Console access is disabled."); },
-        warn: function() { showMsg("Console access is disabled."); },
-        error: function() { showMsg("Console access is disabled."); },
-        info: function() { showMsg("Console access is disabled."); },
-        clear: function() { showMsg("Console access is disabled."); }
-      };
-    })();
-
-    // Main Game Logic
-    let historyData = JSON.parse(localStorage.getItem('calcHistory')) || [],
-        coins = +localStorage.getItem('coins') || 0,
-        theme = localStorage.getItem('theme') || '',
-        rolls = +localStorage.getItem('rolls') || 0,
-        cooldown = false,
-        purchasedThemes = JSON.parse(localStorage.getItem('purchasedThemes')) || [],
-        bestAura = localStorage.getItem('bestAura') || 'None',
-        currentAura = localStorage.getItem('currentAura') || 'None',
-        isDarkMode = localStorage.getItem('isDarkMode') === 'true',
-        isGameMode = false,
-        isSuperRoll = false;
-
-    const auraOrder = ['Common', 'Rare', 'Epic', 'Legendary', 'Mythical', 'Exotic', 'Godly', 'Secret'];
-
-    const normalAuras = [
-      { name: 'Common', chance: 50, reward: 0 },
-      { name: 'Rare', chance: 30, reward: 1 },
-      { name: 'Epic', chance: 12, reward: 2 },
-      { name: 'Legendary', chance: 6, reward: 5 },
-      { name: 'Mythical', chance: 1.79, reward: 20 },
-      { name: 'Exotic', chance: 0.2, reward: 100 },
-      { name: 'Godly', chance: 0.01, reward: 500 },
-      { name: 'Secret', chance: 0.0001, reward: 1000 }
+    const auras = [
+      { name: "ßeba Noob", rarity: "Basic", chance: 40.0, color: "gray", rank: 1 },
+      { name: "Bennet", rarity: "Uncommon", chance: 25.0, color: "green", rank: 2 },
+      { name: "Ginger Johann", rarity: "Uncommon", chance: 15.0, color: "green", rank: 2 },
+      { name: "Reda", rarity: "Rare", chance: 8.0, color: "blue", rank: 3 },
+      { name: "Sigma Magnus", rarity: "Rare", chance: 6.0, color: "blue", rank: 3 },
+      { name: "Sigma Leonardo", rarity: "Epic", chance: 3.0, color: "purple", rank: 4 },
+      { name: "cc jojonas", rarity: "Epic", chance: 1.5, color: "purple", rank: 4 },
+      { name: "vaschili", rarity: "Legendary", chance: 0.5, color: "gold", rank: 5 },
+      { name: "Elox", rarity: "Legendary", chance: 0.4, color: "gold", rank: 5 },
+      { name: "notbenox", rarity: "Legendary", chance: 0.3, color: "gold", rank: 5 },
+      { name: "Valentin kö 8", rarity: "Mythic", chance: 0.15, color: "rainbow", rank: 6 },
+      { name: "cleverlink", rarity: "Mythic", chance: 0.1, color: "rainbow", rank: 6 },
+      { name: "adi pr 69", rarity: "Mythic", chance: 0.05, color: "rainbow", rank: 6 },
+      { name: "Elox487", rarity: "Godly", chance: 0.01, color: "blackwhite", rank: 7 }
     ];
 
-    const superRollAuras = [
-      { name: 'Common', chance: 10, reward: 0 },
-      { name: 'Rare', chance: 40, reward: 1 },
-      { name: 'Epic', chance: 25, reward: 2 },
-      { name: 'Legendary', chance: 14, reward: 5 },
-      { name: 'Mythical', chance: 10, reward: 20 },
-      { name: 'Exotic', chance: 0.9, reward: 100 },
-      { name: 'Godly', chance: 0.1, reward: 500 },
-      { name: 'Secret', chance: 0.005, reward: 1000 }
-    ];
+    let currentAura = null;
+    let bestAura = null;
+    let rebirthStage = 0;
+    let luckBoost = 0;
+    let totalRolls = 0;
+    let superRolls = 0;
+    let coins = 0;
+    let luckUpgrades = 0;
+    let cooldown = false;
+    let hasResetRebirths = false;
+    let startTime = Date.now();
 
-    function append(char) {
-      const display = document.getElementById('display');
-      if (display.value === '0' || display.value === 'Error') {
-        display.value = char;
-      } else {
-        display.value += char;
-      }
+    function saveGame() {
+      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, hasResetRebirths };
+      localStorage.setItem("auraGameSave", JSON.stringify(data));
+      console.log("Game saved:", data); // Debugging log
     }
 
-    function clearDisplay() {
-      const display = document.getElementById('display');
-      display.value = '0';
-    }
-
-    function backspace() {
-      const display = document.getElementById('display');
-      if (display.value === 'Error') {
-        display.value = '0';
-      } else if (display.value.length <= 1) {
-        display.value = '0';
-      } else {
-        display.value = display.value.slice(0, -1);
-      }
-    }
-
-    function calculate() {
-      const display = document.getElementById('display');
-      const input = display.value;
-      let result;
-      try {
-        result = eval(input);
-        if (result === undefined || result === Infinity || isNaN(result)) {
-          throw new Error('Invalid calculation');
+    function loadGame() {
+      const data = JSON.parse(localStorage.getItem("auraGameSave"));
+      if (data) {
+        currentAura = data.currentAura;
+        bestAura = data.bestAura;
+        rebirthStage = data.rebirthStage || 0;
+        luckBoost = data.luckBoost || 0;
+        totalRolls = data.totalRolls || 0;
+        superRolls = data.superRolls || 0;
+        coins = data.coins || 0;
+        luckUpgrades = data.luckUpgrades || 0;
+        hasResetRebirths = data.hasResetRebirths || false;
+        if (!hasResetRebirths) {
+          rebirthStage = 0;
+          luckBoost = luckUpgrades * 10;
+          hasResetRebirths = true;
         }
-        display.value = result;
-        addToHistory(input, result);
-      } catch {
-        display.value = 'Error';
+        updateDisplay();
       }
+      updatePlaytime();
     }
 
-    function addToHistory(input, result) {
-      const timestamp = new Date();
-      historyData.unshift({ input, result, timestamp });
-      localStorage.setItem('calcHistory', JSON.stringify(historyData));
-      renderHistory();
-    }
-
-    function renderHistory() {
-      const historyEl = document.getElementById('history');
-      historyEl.innerHTML = historyData.map(entry => {
-        return `<div class="history-entry">${entry.input} = <strong>${entry.result}</strong><br><small>${timeAgo(new Date(entry.timestamp))} ago</small></div>`;
-      }).join('');
-    }
-
-    function timeAgo(date) {
-      const seconds = Math.floor((new Date() - date) / 1000);
-      const intervals = [
-        { label: 'day', seconds: 86400 },
-        { label: 'hour', seconds: 3600 },
-        { label: 'minute', seconds: 60 },
-        { label: 'second', seconds: 1 }
-      ];
-      for (const interval of intervals) {
-        const count = Math.floor(seconds / interval.seconds);
-        if (count > 0) return `${count} ${interval.label}${count !== 1 ? 's' : ''}`;
-      }
-      return 'just now';
-    }
-
-    function updateCoins() {
-      const coinDisplays = document.getElementsByClassName('coin-display');
-      for (let display of coinDisplays) {
-        display.innerHTML = `<span class="coin-icon">🪙</span> ${coins}`;
-      }
-      localStorage.setItem('coins', coins);
-      updateThemeButtons();
-    }
-
-    function checkRoll() {
+    function rollAura(isSuperRoll = false) {
       if (cooldown) return;
-      isSuperRoll = false;
-      const highTierAuras = ['Legendary', 'Mythical', 'Exotic', 'Godly', 'Secret'];
-      if (highTierAuras.includes(currentAura)) {
-        showWarning(currentAura);
-      } else {
-        rollAura();
-      }
-    }
-
-    function checkSuperRoll() {
-      if (cooldown) return;
-      if (coins < 10) {
-        showMsg("You need 10 🪙 to Super Roll!");
+      if (isSuperRoll && coins < 10) {
+        alert("⚠️ Not enough Coins! Requires 10 Coins for Super Roll!");
         return;
       }
-      isSuperRoll = true;
-      const highTierAuras = ['Legendary', 'Mythical', 'Exotic', 'Godly', 'Secret'];
-      if (highTierAuras.includes(currentAura)) {
-        showWarning(currentAura);
-      } else {
-        coins -= 10;
-        updateCoins();
-        rollAura();
-      }
-    }
 
-    function showWarning(aura) {
-      const warningFrame = document.getElementById('warningFrame');
-      const warningMessage = document.getElementById('warningMessage');
-      warningMessage.innerHTML = `Are you sure you wanna roll the <span class="aura-${aura}">${aura}</span> Aura away?`;
-      warningFrame.style.display = 'block';
-      disableInteractions(true);
-    }
-
-    function confirmRoll(confirm) {
-      const warningFrame = document.getElementById('warningFrame');
-      warningFrame.style.display = 'none';
-      disableInteractions(false);
-      if (confirm) {
-        if (isSuperRoll) {
-          coins -= 10;
-          updateCoins();
-        }
-        rollAura();
-      }
-    }
-
-    function disableInteractions(disable) {
-      const buttons = document.querySelectorAll('button:not(#yesBtn):not(#noBtn)');
-      const icons = document.querySelectorAll('.game-icon, .theme-icon, .menu-icon');
-      buttons.forEach(btn => btn.disabled = disable);
-      icons.forEach(icon => icon.disabled = disable);
-    }
-
-    function rollAura() {
-      if (cooldown) return;
       cooldown = true;
-      setTimeout(() => cooldown = false, 2000);
+      document.getElementById("rollBtn").disabled = true;
+      document.getElementById("superRollBtn").disabled = true;
+      setTimeout(() => {
+        cooldown = false;
+        document.getElementById("rollBtn").disabled = false;
+        document.getElementById("superRollBtn").disabled = false;
+      }, 1000);
 
-      const aurasToUse = isSuperRoll ? superRollAuras : normalAuras;
-      let rand = Math.random() * 100, total = 0, aura = 'Common';
-      for (let a of aurasToUse) {
-        total += a.chance;
-        if (rand <= total) {
-          aura = a.name;
-          coins += a.reward;
+      if (isSuperRoll) {
+        coins -= 10;
+        superRolls++;
+      }
+      totalRolls++;
+
+      const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
+      const roll = Math.random() * 100 / (1 + effectiveLuck / 100);
+      let cumulative = 0;
+      let availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
+
+      const totalChance = availableAuras.reduce((sum, aura) => sum + aura.chance, 0);
+      const normalizedAuras = availableAuras.map(aura => ({
+        ...aura,
+        chance: (aura.chance / totalChance) * 100 * (1 + effectiveLuck / 100)
+      }));
+
+      for (let aura of normalizedAuras) {
+        cumulative += aura.chance;
+        if (roll <= cumulative) {
+          currentAura = auras.find(a => a.name === aura.name);
+          if (!bestAura || aura.rank > bestAura.rank) bestAura = aura;
+          addCoins(currentAura.rarity);
           break;
         }
       }
 
-      rolls++;
-      localStorage.setItem('rolls', rolls);
-      document.getElementById('rollCount').innerText = rolls;
-
-      currentAura = aura;
-      localStorage.setItem('currentAura', currentAura);
-      const auraEl = document.getElementById('currentAura');
-      auraEl.innerHTML = aura === 'Secret' ? 'Secret ??? (0.0001%)' : aura;
-      if (aura === 'Godly') {
-        auraEl.innerHTML = `<span class="aura-Godly">${aura}<span class="halo"></span></span>`;
-      } else if (aura === 'Secret') {
-        auraEl.innerHTML = `<span class="aura-Secret">Secret ??? (0.0001%)</span>`;
-        auraEl.classList.add('secret-aura-animation');
-      } else {
-        auraEl.className = 'aura-' + aura;
-      }
-
-      if (auraOrder.indexOf(aura) > auraOrder.indexOf(bestAura)) {
-        bestAura = aura;
-        localStorage.setItem('bestAura', bestAura);
-        const bestAuraEl = document.getElementById('bestAura');
-        bestAuraEl.innerHTML = aura === 'Secret' ? 'Secret ??? (0.0001%)' : aura;
-        if (aura === 'Godly') {
-          bestAuraEl.innerHTML = `<span class="aura-Godly">${aura}<span class="halo"></span></span>`;
-        } else if (aura === 'Secret') {
-          bestAuraEl.innerHTML = `<span class="aura-Secret">Secret ??? (0.0001%)</span>`;
-        } else {
-          bestAuraEl.className = 'aura-' + aura;
-        }
-      }
-
-      updateCoins();
+      updateDisplay(isSuperRoll);
+      saveGame();
     }
 
-    function toggleMode() {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      const title = document.getElementById('title');
-      isGameMode = title.innerText === 'Set Calculator';
-      title.innerText = isGameMode ? 'Set Game' : 'Set Calculator';
-      document.getElementById('calcPanel').style.display = isGameMode ? 'none' : 'block';
-      document.getElementById('gamePanel').style.display = isGameMode ? 'block' : 'none';
-      document.getElementById('gameSignature').style.display = isGameMode ? 'block' : 'none';
-      document.getElementById('modeIcon').className = isGameMode ? 'fas fa-calculator game-icon' : 'fas fa-gamepad game-icon';
-      if (isGameMode) {
-        document.getElementById('history').style.display = 'none';
-      }
+    function addCoins(rarity) {
+      const coinValues = {
+        Rare: 1,
+        Epic: 2,
+        Legendary: 3,
+        Mythic: 8,
+        Godly: 15
+      };
+      coins += coinValues[rarity] || 0;
     }
 
-    function toggleDropdown() {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      const themeDropdown = document.getElementById('themeDropdown');
-      if (themeDropdown.classList.contains('open')) {
-        themeDropdown.classList.remove('open');
-      }
-      toggleEl('dropdown');
-
-      const historyBtn = document.getElementById('historyBtn');
-      if (isGameMode) {
-        historyBtn.classList.add('disabled');
-      } else {
-        historyBtn.classList.remove('disabled');
-      }
-    }
-
-    function toggleThemeDropdown() {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      const menuDropdown = document.getElementById('dropdown');
-      if (menuDropdown.classList.contains('open')) {
-        menuDropdown.classList.remove('open');
-      }
-      toggleEl('themeDropdown');
-    }
-
-    function toggleEl(id) {
-      const el = document.getElementById(id);
-      if (el.classList.contains('open')) {
-        el.classList.remove('open');
-      } else {
-        el.classList.add('open');
-      }
-    }
-
-    function toggleTheme() {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      isDarkMode = !isDarkMode;
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('isDarkMode', isDarkMode);
-      updateThemeButtons();
-    }
-
-    function toggleHistory() {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      if (isGameMode) {
-        showMsg("History is only available in Set Calculator mode!");
-        return;
-      }
-      const el = document.getElementById('history');
-      el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function selectTheme(t) {
-      const warningFrame = document.getElementById('warningFrame');
-      if (warningFrame.style.display === 'block') return;
-
-      if (t === 'theme-tech' && !purchasedThemes.includes('theme-tech') && coins < 5) {
-        showMsg("You need 5 🪙 to buy this. Switch to Set Game mode to earn coins");
-        return;
-      }
-      if (t === 'theme-neon' && !purchasedThemes.includes('theme-neon') && coins < 15) {
-        showMsg("You need 15 🪙 to buy this. Switch to Set Game mode to earn coins");
-        return;
-      }
-      if (t === 'theme-fire' && !purchasedThemes.includes('theme-fire') && coins < 40) {
-        showMsg("You need 40 🪙 to buy this. Switch to Set Game mode to earn coins");
-        return;
-      }
-      if (t === 'theme-rainbow' && !purchasedThemes.includes('theme-rainbow') && coins < 80) {
-        showMsg("You need 80 🪙 to buy this. Switch to Set Game mode to earn coins");
-        return;
-      }
-      if (t === 'theme-rainbow-plus' && !purchasedThemes.includes('theme-rainbow-plus') && coins < 200) {
-        showMsg("You need 200 🪙 to buy this. Switch to Set Game mode to earn coins");
+    function upgradeLuck() {
+      if (luckUpgrades >= 10) {
+        alert("✅ Maximum Luck Upgrades reached!");
         return;
       }
 
-      if (t === 'theme-tech' && !purchasedThemes.includes('theme-tech')) {
-        coins -= 5;
-        purchasedThemes.push('theme-tech');
-        localStorage.setItem('purchasedThemes', JSON.stringify(purchasedThemes));
-        updateCoins();
-        showMsg("Theme Purchased!");
-      }
-      if (t === 'theme-neon' && !purchasedThemes.includes('theme-neon')) {
-        coins -= 15;
-        purchasedThemes.push('theme-neon');
-        localStorage.setItem('purchasedThemes', JSON.stringify(purchasedThemes));
-        updateCoins();
-        showMsg("Theme Purchased!");
-      }
-      if (t === 'theme-fire' && !purchasedThemes.includes('theme-fire')) {
-        coins -= 40;
-        purchasedThemes.push('theme-fire');
-        localStorage.setItem('purchasedThemes', JSON.stringify(purchasedThemes));
-        updateCoins();
-        showMsg("Theme Purchased!");
-      }
-      if (t === 'theme-rainbow' && !purchasedThemes.includes('theme-rainbow')) {
-        coins -= 80;
-        purchasedThemes.push('theme-rainbow');
-        localStorage.setItem('purchasedThemes', JSON.stringify(purchasedThemes));
-        updateCoins();
-        showMsg("Theme Purchased!");
-      }
-      if (t === 'theme-rainbow-plus' && !purchasedThemes.includes('theme-rainbow-plus')) {
-        coins -= 200;
-        purchasedThemes.push('theme-rainbow-plus');
-        localStorage.setItem('purchasedThemes', JSON.stringify(purchasedThemes));
-        updateCoins();
-        showMsg("Theme Purchased!");
-      }
+      const upgradeCosts = [5, 8, 10, 14, 19, 28, 40, 55, 70, 100];
+      const cost = upgradeCosts[luckUpgrades];
 
-      document.body.className = document.body.className.replace(/theme-[^\\s]+/g, '').trim();
-      if (t) {
-        document.body.classList.add(t);
-        theme = t;
-        localStorage.setItem('theme', t);
+      if (coins >= cost) {
+        coins -= cost;
+        luckUpgrades++;
+        luckBoost += 10;
+        alert(`🔮 Luck Upgrade ${luckUpgrades}/10 completed! +10% Luck!`);
+        updateDisplay();
+        saveGame();
       } else {
-        theme = '';
-        localStorage.setItem('theme', '');
-      }
-      updateThemeButtons();
-    }
-
-    function updateThemeButtons() {
-      const defaultBtn = document.getElementById('defaultThemeBtn');
-      const blueBtn = document.getElementById('blueThemeBtn');
-      const techBtn = document.getElementById('techThemeBtn');
-      const neonBtn = document.getElementById('neonBtn');
-      const fireBtn = document.getElementById('fireBtn');
-      const rainbowBtn = document.getElementById('rainbowBtn');
-      const rainbowPlusBtn = document.getElementById('rainbowPlusBtn');
-      const darkModeBtn = document.getElementById('darkModeBtn');
-
-      defaultBtn.innerText = theme === '' ? 'Default (Equipped)' : 'Default';
-      blueBtn.innerText = theme === 'theme-blue' ? 'Blue (Equipped)' : 'Blue';
-      darkModeBtn.innerText = isDarkMode ? 'Toggle Dark Mode (Equipped)' : 'Toggle Dark Mode';
-
-      if (purchasedThemes.includes('theme-tech')) {
-        techBtn.innerText = theme === 'theme-tech' ? 'Tech (Equipped)' : 'Tech';
-        techBtn.classList.remove('locked');
-      } else {
-        techBtn.innerText = 'Tech (5 🪙)';
-        if (coins < 5) techBtn.classList.add('locked');
-        else techBtn.classList.remove('locked');
-      }
-
-      if (purchasedThemes.includes('theme-neon')) {
-        neonBtn.innerText = theme === 'theme-neon' ? 'Neon (Equipped)' : 'Neon';
-        neonBtn.classList.remove('locked');
-      } else {
-        neonBtn.innerText = 'Neon (15 🪙)';
-        if (coins < 15) neonBtn.classList.add('locked');
-        else neonBtn.classList.remove('locked');
-      }
-
-      if (purchasedThemes.includes('theme-fire')) {
-        fireBtn.innerText = theme === 'theme-fire' ? 'Fire (Equipped)' : 'Fire';
-        fireBtn.classList.remove('locked');
-      } else {
-        fireBtn.innerText = 'Fire (40 🪙)';
-        if (coins < 40) fireBtn.classList.add('locked');
-        else fireBtn.classList.remove('locked');
-      }
-
-      if (purchasedThemes.includes('theme-rainbow')) {
-        rainbowBtn.innerText = theme === 'theme-rainbow' ? 'Rainbow (Equipped)' : 'Rainbow';
-        rainbowBtn.classList.remove('locked');
-      } else {
-        rainbowBtn.innerText = 'Rainbow (80 🪙)';
-        if (coins < 80) rainbowBtn.classList.add('locked');
-        else rainbowBtn.classList.remove('locked');
-      }
-
-      if (purchasedThemes.includes('theme-rainbow-plus')) {
-        rainbowPlusBtn.innerText = theme === 'theme-rainbow-plus' ? 'Rainbow+ (Equipped)' : 'Rainbow+';
-        rainbowPlusBtn.classList.remove('locked');
-      } else {
-        rainbowPlusBtn.innerText = 'Rainbow+ (200 🪙)';
-        if (coins < 200) rainbowPlusBtn.classList.add('locked');
-        else rainbowPlusBtn.classList.remove('locked');
+        alert(`⚠️ Not enough Coins! Requires ${cost} Coins for the next Luck Upgrade.`);
       }
     }
 
-    function showMsg(msg) {
-      const msgEl = document.createElement('div');
-      msgEl.className = 'msg-box';
-      msgEl.innerHTML = msg;
-      document.getElementById('msgContainer').appendChild(msgEl);
-      setTimeout(() => msgEl.classList.add('show'), 10);
-      setTimeout(() => {
-        msgEl.classList.remove('show');
-        setTimeout(() => msgEl.remove(), 300);
-      }, 2500);
+    function rebirth() {
+      if (!currentAura) {
+        alert("⚠️ You must roll an Aura first!");
+        return;
+      }
+
+      const rebirthRequirements = [
+        { rarity: "Epic", coins: 15, luck: 20 },
+        { rarity: "Legendary", coins: 35, luck: 50 },
+        { name: "Valentin kö 8", coins: 90, luck: 80 },
+        { name: "adi pr 69", coins: 200, luck: 170 },
+        { name: "Elox487", coins: 500, luck: 250 }
+      ];
+
+      if (rebirthStage >= rebirthRequirements.length) {
+        alert("✅ Maximum Rebirth reached!");
+        return;
+      }
+
+      const req = rebirthRequirements[rebirthStage];
+      const isValidAura = req.name ? currentAura.name === req.name : currentAura.rarity === req.rarity;
+
+      if (isValidAura && coins >= req.coins) {
+        coins -= req.coins;
+        luckBoost += req.luck;
+        rebirthStage++;
+        currentAura = null;
+        alert(`💫 Rebirth ${rebirthStage} completed! +${req.luck}% Luck!`);
+        updateDisplay();
+        saveGame();
+      } else {
+        alert(`⚠️ Requires ${req.name || req.rarity} Aura and ${req.coins} Coins for Rebirth ${rebirthStage + 1}!`);
+      }
     }
 
-    if (isDarkMode) document.body.classList.add('dark-mode');
-    selectTheme(theme);
-    updateCoins();
-    renderHistory();
-    document.getElementById('rollCount').innerText = rolls;
-    const currentAuraEl = document.getElementById('currentAura');
-    currentAuraEl.innerHTML = currentAura === 'Secret' ? 'Secret ??? (0.0001%)' : currentAura;
-    if (currentAura === 'Godly') {
-      currentAuraEl.innerHTML = `<span class="aura-Godly">${currentAura}<span class="halo"></span></span>`;
-    } else if (currentAura === 'Secret') {
-      currentAuraEl.innerHTML = `<span class="aura-Secret">Secret ??? (0.0001%)</span>`;
-      currentAuraEl.classList.add('secret-aura-animation');
-    } else {
-      currentAuraEl.className = 'aura-' + currentAura;
+    function updateDisplay(isSuperRoll = false) {
+      const auraDisplay = document.getElementById("auraDisplay");
+      auraDisplay.classList.remove("animate");
+      void auraDisplay.offsetWidth;
+      auraDisplay.classList.add("animate");
+
+      const isGradient = currentAura && currentAura.rarity === "Godly";
+      const isRainbow = currentAura && currentAura.rarity === "Mythic";
+      const auraNameStyled = currentAura
+        ? isGradient
+          ? `<span class="gradient-text">${currentAura.name}</span>`
+          : isRainbow
+            ? `<span class="rainbow-text">${currentAura.name}</span>`
+            : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
+        : "None";
+
+      auraDisplay.innerHTML = `🌈 You got: ${auraNameStyled} ${currentAura ? `(${currentAura.rarity})` : ""}`;
+      document.getElementById("currentAura").innerHTML = auraNameStyled;
+      document.getElementById("bestAura").innerHTML = bestAura
+        ? `<span style="${bestAura.color === 'blackwhite' ? 'background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'rainbow' ? 'background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : `color:${bestAura.color}`}">
+            ${bestAura.name}
+          </span>`
+        : "None";
+      document.getElementById("coins").textContent = coins;
+      document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/10`;
+      document.getElementById("rebirthStage").textContent = rebirthStage;
+      document.getElementById("totalRolls").textContent = totalRolls;
+      document.getElementById("superRolls").textContent = superRolls;
+      document.getElementById("currentLuck").textContent = `${luckBoost}%`;
+      document.getElementById("currentLuckSuper").textContent = `${luckBoost + (isSuperRoll ? 500 : 0)}%`;
+      updatePlaytime();
+      updateRebirthRequirements();
+      updateLuckUpgradeRequirements();
+      updateAuraChances(isSuperRoll);
+
+      const resultId = isSuperRoll ? "superResult" : "normalResult";
+      const resultDisplay = document.getElementById(resultId);
+      resultDisplay.innerHTML = currentAura ? `🌈 You got: ${auraNameStyled} (${currentAura.rarity})` : "No roll yet!";
     }
-    const bestAuraEl = document.getElementById('bestAura');
-    bestAuraEl.innerHTML = bestAura === 'Secret' ? 'Secret ??? (0.0001%)' : bestAura;
-    if (bestAura === 'Godly') {
-      bestAuraEl.innerHTML = `<span class="aura-Godly">${bestAura}<span class="halo"></span></span>`;
-    } else if (bestAura === 'Secret') {
-      bestAuraEl.innerHTML = `<span class="aura-Secret">Secret ??? (0.0001%)</span>`;
-    } else {
-      bestAuraEl.className = 'aura-' + bestAura;
+
+    function updateRebirthRequirements() {
+      const reqs = document.getElementById("rebirthReqs");
+      const rebirthRequirements = [
+        { rarity: "Epic", coins: 15, luck: 20 },
+        { rarity: "Legendary", coins: 35, luck: 50 },
+        { name: "Valentin kö 8", coins: 90, luck: 80 },
+        { name: "adi pr 69", coins: 200, luck: 170 },
+        { name: "Elox487", coins: 500, luck: 250 }
+      ];
+
+      if (rebirthStage >= rebirthRequirements.length) {
+        reqs.innerHTML = "✅ Maximum Rebirth reached! 🌟";
+        return;
+      }
+
+      const req = rebirthRequirements[rebirthStage];
+      const colorMap = {
+        Epic: "purple",
+        Legendary: "gold",
+        Mythic: "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;",
+        Godly: "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+      };
+      const auraText = req.name
+        ? `<span style="${req.name === 'Elox487' ? colorMap.Godly : colorMap.Mythic}">${req.name}</span>`
+        : `<span style="color:${colorMap[req.rarity]}">${req.rarity}</span>`;
+      reqs.innerHTML = `💫 Next Rebirth: ${auraText} + ${req.coins} Coins → <strong>+${req.luck}% Luck</strong>`;
     }
+
+    function updateLuckUpgradeRequirements() {
+      const reqs = document.getElementById("luckUpgradeReqs");
+      if (luckUpgrades >= 10) {
+        reqs.innerHTML = "✅ Maximum Luck Upgrades reached! 🌟";
+        return;
+      }
+      const upgradeCosts = [5, 8, 10, 14, 19, 28, 40, 55, 70, 100];
+      reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+10% Luck</strong>`;
+    }
+
+    function updateAuraChances(isSuperRoll = false) {
+      const chancesDiv = document.getElementById("normalChances");
+      const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
+      const availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
+      const totalChance = availableAuras.reduce((sum, aura) => sum + aura.chance, 0);
+      const normalizedAuras = availableAuras.map(aura => ({
+        ...aura,
+        chance: ((aura.chance / totalChance) * 100 / (1 + effectiveLuck / 100)).toFixed(2)
+      }));
+
+      let html = "<h3>🎲 Aura Chances</h3><ul>";
+      normalizedAuras.forEach(aura => {
+        const colorStyle = aura.color === "rainbow"
+          ? "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+          : aura.color === "blackwhite"
+            ? "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+            : `color:${aura.color}`;
+        html += `<li><span style="${colorStyle}">${aura.name}</span> (${aura.rarity}): ${aura.chance}%</li>`;
+      });
+      html += "</ul>";
+      chancesDiv.innerHTML = html;
+    }
+
+    function updatePlaytime() {
+      const now = Date.now();
+      const playtimeMinutes = Math.floor((now - startTime) / 60000);
+      document.getElementById("playtime").textContent = `${playtimeMinutes}m`;
+    }
+
+    function toggleMenu() {
+      const dropdown = document.getElementById("dropdown");
+      dropdown.classList.toggle("active");
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+      document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add("active");
+      document.getElementById(tabId).classList.add("active");
+      if (tabId === "normal-roll") updateAuraChances(false);
+    }
+
+    setInterval(updatePlaytime, 60000);
+    window.onload = loadGame;
   </script>
 </body>
 </html>
