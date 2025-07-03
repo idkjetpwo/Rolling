@@ -58,6 +58,13 @@
       animation: rainbow 3s linear infinite;
     }
 
+    .gradient-text-master {
+      background: linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: pulse 2s infinite;
+    }
+
     @keyframes rainbow {
       0% { background-position: 0%; }
       100% { background-position: 200%; }
@@ -221,6 +228,54 @@
       font-size: 0.8em;
       color: rgba(255, 255, 255, 0.3);
     }
+
+    .popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.9);
+      padding: 2em;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+      z-index: 20;
+      animation: popIn 0.5s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: translate(-50%, -60%) scale(0.8); opacity: 0; }
+      to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .popup.active {
+      display: block;
+    }
+
+    .popup-buttons {
+      margin-top: 1em;
+    }
+
+    .popup-button {
+      padding: 0.8em 1.5em;
+      margin: 0 0.5em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .popup-button.yes {
+      background: #00ffcc;
+    }
+
+    .popup-button.no {
+      background: #ff69b4;
+    }
+
+    .popup-button:hover {
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
@@ -241,7 +296,7 @@
       <p>🍀 Current Luck: <span id="currentLuck">0%</span></p>
     </div>
     <div class="tab-content" id="super-roll">
-      <button class="button super-roll-btn" id="superRollBtn" onclick="rollAura(true)">🍀 Super Roll (10 Coins)</button>
+      <button class="button super-roll-btn" id="superRollBtn" onclick="rollAura(true)">🍀 Super Roll (10 Coins, +500% Luck)</button>
       <div class="result" id="superResult"></div>
       <p>🍀 Super Rolls: <span id="superRolls">0</span></p>
       <p>🍀 Current Luck: <span id="currentLuckSuper">0%</span></p>
@@ -260,6 +315,15 @@
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 3.0</h4>
+        <ul>
+          <li>🎨 Adjusted aura chances with 'Balanced Boost' variation, increasing rare aura probabilities.</li>
+          <li>💰 Updated coin rewards: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50).</li>
+          <li>🌟 Added new 'Setrox' Master aura (0.01%, blueish-greenish-whiteish gradient, rank 8).</li>
+          <li>⚠️ Added warning popup for rolling away Legendary or better auras with 'Yes/No' options.</li>
+          <li>🍀 Clarified Super Roll provides +500% more luck.</li>
+          <li>💡 Displayed coins earned per rarity in middle stats.</li>
+        </ul>
         <h4>Update 2.0</h4>
         <ul>
           <li>⏱️ Added Rolling Cooldown upgrade with 3 levels (12, 30, 50 Coins).</li>
@@ -284,10 +348,18 @@
       </div>
     </div>
   </div>
+  <div class="popup" id="warningPopup">
+    <p id="warningMessage"></p>
+    <div class="popup-buttons">
+      <button class="popup-button yes" onclick="confirmRoll(true)">Yes</button>
+      <button class="popup-button no" onclick="confirmRoll(false)">No</button>
+    </div>
+  </div>
   <div class="container">
     <h1>🎰 Aura Roller Game 🎉</h1>
     <div class="aura" id="auraDisplay">✨ Roll to get your Aura! ✨</div>
     <div class="info">
+      <p>💰 Coins per Rarity: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50)</p>
       <p>🌈 Current Aura: <span id="currentAura">None</span></p>
       <p>🏆 Best Aura: <span id="bestAura">None</span></p>
       <p>⏰ Playtime: <span id="playtime">0m</span></p>
@@ -297,20 +369,21 @@
 
   <script>
     const auras = [
-      { name: "ßeba Noob", rarity: "Basic", chance: 40.0, color: "gray", rank: 1 },
+      { name: "ßeba Noob", rarity: "Basic", chance: 30.0, color: "gray", rank: 1 },
       { name: "Bennet", rarity: "Uncommon", chance: 25.0, color: "green", rank: 2 },
       { name: "Ginger Johann", rarity: "Uncommon", chance: 15.0, color: "green", rank: 2 },
-      { name: "Reda", rarity: "Rare", chance: 8.0, color: "blue", rank: 3 },
-      { name: "Sigma Magnus", rarity: "Rare", chance: 6.0, color: "blue", rank: 3 },
-      { name: "Sigma Leonardo", rarity: "Epic", chance: 3.0, color: "purple", rank: 4 },
-      { name: "cc jojonas", rarity: "Epic", chance: 1.5, color: "purple", rank: 4 },
-      { name: "vaschili", rarity: "Legendary", chance: 0.5, color: "gold", rank: 5 },
-      { name: "Elox", rarity: "Legendary", chance: 0.4, color: "gold", rank: 5 },
-      { name: "notbenox", rarity: "Legendary", chance: 0.3, color: "gold", rank: 5 },
-      { name: "Valentin kö 8", rarity: "Mythic", chance: 0.15, color: "rainbow", rank: 6 },
-      { name: "cleverlink", rarity: "Mythic", chance: 0.1, color: "rainbow", rank: 6 },
-      { name: "adi pr 69", rarity: "Mythic", chance: 0.05, color: "rainbow", rank: 6 },
-      { name: "Elox487", rarity: "Godly", chance: 0.01, color: "blackwhite", rank: 7 }
+      { name: "Reda", rarity: "Rare", chance: 12.0, color: "blue", rank: 3 },
+      { name: "Sigma Magnus", rarity: "Rare", chance: 8.0, color: "blue", rank: 3 },
+      { name: "Sigma Leonardo", rarity: "Epic", chance: 5.0, color: "purple", rank: 4 },
+      { name: "cc jojonas", rarity: "Epic", chance: 3.0, color: "purple", rank: 4 },
+      { name: "vaschili", rarity: "Legendary", chance: 1.5, color: "gold", rank: 5 },
+      { name: "Elox", rarity: "Legendary", chance: 1.0, color: "gold", rank: 5 },
+      { name: "notbenox", rarity: "Legendary", chance: 0.5, color: "gold", rank: 5 },
+      { name: "Valentin kö 8", rarity: "Mythic", chance: 0.3, color: "rainbow", rank: 6 },
+      { name: "cleverlink", rarity: "Mythic", chance: 0.2, color: "rainbow", rank: 6 },
+      { name: "adi pr 69", rarity: "Mythic", chance: 0.1, color: "rainbow", rank: 6 },
+      { name: "Elox487", rarity: "Godly", chance: 0.05, color: "blackwhite", rank: 7 },
+      { name: "Setrox", rarity: "Master", chance: 0.01, color: "gradient-master", rank: 8 }
     ];
 
     let currentAura = null;
@@ -325,6 +398,7 @@
     let cooldown = false;
     let hasResetRebirths = false;
     let startTime = Date.now();
+    let pendingSuperRoll = false;
 
     function saveGame() {
       const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths };
@@ -362,21 +436,31 @@
         return;
       }
 
-      cooldown = true;
-      document.getElementById("rollBtn").disabled = true;
-      document.getElementById("superRollBtn").disabled = true;
-      const cooldownTimes = [1000, 950, 875, 750]; // ms for each level
-      setTimeout(() => {
-        cooldown = false;
-        document.getElementById("rollBtn").disabled = false;
-        document.getElementById("superRollBtn").disabled = false;
-      }, cooldownTimes[cooldownLevel]);
+      if (currentAura && currentAura.rank >= 4) { // Legendary or better (Epic = 4, up to Master = 8)
+        showWarningPopup(isSuperRoll);
+        pendingSuperRoll = isSuperRoll;
+        return;
+      }
 
+      performRoll(isSuperRoll);
+    }
+
+    function performRoll(isSuperRoll) {
       if (isSuperRoll) {
         coins -= 10;
         superRolls++;
       }
       totalRolls++;
+
+      cooldown = true;
+      document.getElementById("rollBtn").disabled = true;
+      document.getElementById("superRollBtn").disabled = true;
+      const cooldownTimes = [1000, 950, 875, 750];
+      setTimeout(() => {
+        cooldown = false;
+        document.getElementById("rollBtn").disabled = false;
+        document.getElementById("superRollBtn").disabled = false;
+      }, cooldownTimes[cooldownLevel]);
 
       const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
       const roll = Math.random() * 100 / (1 + effectiveLuck / 100);
@@ -406,10 +490,10 @@
     function addCoins(rarity) {
       const coinValues = {
         Rare: 1,
-        Epic: 2,
-        Legendary: 3,
-        Mythic: 8,
-        Godly: 15
+        Epic: 3,
+        Legendary: 8,
+        Mythic: 18,
+        Godly: 50
       };
       coins += coinValues[rarity] || 0;
     }
@@ -498,18 +582,21 @@
 
       const isGradient = currentAura && currentAura.rarity === "Godly";
       const isRainbow = currentAura && currentAura.rarity === "Mythic";
+      const isMaster = currentAura && currentAura.rarity === "Master";
       const auraNameStyled = currentAura
-        ? isGradient
-          ? `<span class="gradient-text">${currentAura.name}</span>`
-          : isRainbow
-            ? `<span class="rainbow-text">${currentAura.name}</span>`
-            : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
+        ? isMaster
+          ? `<span class="gradient-text-master">${currentAura.name}</span>`
+          : isGradient
+            ? `<span class="gradient-text">${currentAura.name}</span>`
+            : isRainbow
+              ? `<span class="rainbow-text">${currentAura.name}</span>`
+              : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
         : "None";
 
       auraDisplay.innerHTML = `🌈 You got: ${auraNameStyled} ${currentAura ? `(${currentAura.rarity})` : ""}`;
       document.getElementById("currentAura").innerHTML = auraNameStyled;
       document.getElementById("bestAura").innerHTML = bestAura
-        ? `<span style="${bestAura.color === 'blackwhite' ? 'background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'rainbow' ? 'background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : `color:${bestAura.color}`}">
+        ? `<span style="${bestAura.color === 'blackwhite' ? 'background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'rainbow' ? 'background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : bestAura.color === 'gradient-master' ? 'background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;' : `color:${bestAura.color}`}">
             ${bestAura.name}
           </span>`
         : "None";
@@ -599,7 +686,9 @@
           ? "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
           : aura.color === "blackwhite"
             ? "background:linear-gradient(90deg, black, white);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
-            : `color:${aura.color}`;
+            : aura.color === "gradient-master"
+              ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
+              : `color:${aura.color}`;
         html += `<li><span style="${colorStyle}">${aura.name}</span> (${aura.rarity}): ${aura.chance}%</li>`;
       });
       html += "</ul>";
@@ -623,6 +712,40 @@
       document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add("active");
       document.getElementById(tabId).classList.add("active");
       if (tabId === "normal-roll") updateAuraChances(false);
+    }
+
+    function showWarningPopup(isSuperRoll) {
+      const popup = document.getElementById("warningPopup");
+      const message = document.getElementById("warningMessage");
+      const auraNameStyled = currentAura
+        ? currentAura.rarity === "Master"
+          ? `<span class="gradient-text-master">${currentAura.name}</span>`
+          : currentAura.rarity === "Godly"
+            ? `<span class="gradient-text">${currentAura.name}</span>`
+            : currentAura.rarity === "Mythic"
+              ? `<span class="rainbow-text">${currentAura.name}</span>`
+              : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
+        : "None";
+      message.innerHTML = `⚠️ You have a ${currentAura.rarity} aura: ${auraNameStyled}. Are you sure you want to roll it away?`;
+      popup.classList.add("active");
+    }
+
+    function confirmRoll(confirmed) {
+      const popup = document.getElementById("warningPopup");
+      popup.classList.remove("active");
+      if (confirmed) {
+        if (pendingSuperRoll && coins >= 10) {
+          performRoll(pendingSuperRoll);
+        } else if (!pendingSuperRoll) {
+          performRoll(false);
+        }
+      } else if (pendingSuperRoll) {
+        // Refund coins if "No" on Super Roll
+        coins += 10;
+        updateDisplay(pendingSuperRoll);
+        saveGame();
+      }
+      pendingSuperRoll = false;
     }
 
     setInterval(updatePlaytime, 60000);
