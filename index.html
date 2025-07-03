@@ -402,15 +402,17 @@
       <div class="update-log">
         <h3>📜 Update Log</h3>
         <p><em>Note: Update 1.0 was the initial version (not logged separately).</em></p>
-        <h4>Update 3.0 (03.07.25)</h4>
+        <h4>Update 4.0 (03.07.25)</h4>
         <ul>
           <li>⚙️ Enhanced casino frame: Faster roll-down (1.2s to 50px), rolls ~30 auras (fast initially, slows near end), adds shining frame for obtained aura.</li>
           <li>🎨 Fixed duplicate aura bug in rolls, ensures unique selection.</li>
           <li>💪 Nerfed rebirths: R1 (+15%), R2 (+40%), R3 (+60%), R4 (+100%), R5 (+150%), added R6 (Benox, 800 Coins, +200%), R7 (Setrox, 1500 Coins, +250%).</li>
           <li>🔮 Nerfed luck upgrades: U1 (10 Coins, +2%), U2 (16 Coins, +5%), U3 (20 Coins, +10%), U4 (30 Coins, +12%), U5 (50 Coins, +15%), U6 (80 Coins, +17%), U7 (150 Coins, +20%), U8 (325 Coins, +25%), U9 (750 Coins, +30%), U10 (2000 Coins, +35%).</li>
           <li>🐛 Ensured aura is obtained from landed frame.</li>
+          <li>🔄 One-time reset of all upgrades for all players.</li>
+          <li>🎲 Restored chances display on Normal Roll tab.</li>
         </ul>
-        <h4>Update 2.0 (03.07.25)</h4>
+        <h4>Update 3.0 (03.07.25)</h4>
         <ul>
           <li>⚙️ Improved casino frame: Rolls ~20 existing auras with rarity-based probabilities (Basic 25%, Uncommon 20%, Rare 18%, Legendary 13%, Mythic 5%, Godly 3%, Master 1%, Grand-Master 0.5%), lands on obtained aura with smooth animation.</li>
           <li>⚠️ Fixed Epic aura warning: Only triggers at Rebirth 0 if required for next rebirth, no warning otherwise unless Legendary or better.</li>
@@ -418,7 +420,7 @@
           <li>🍀 Enhanced Super Roll: Increases rarity of Legendary+ auras by 1.5x.</li>
           <li>🐛 Fixed rolling bugs: Ensures aura is set and displayed, maintains consistent speed.</li>
         </ul>
-        <h4>Update 1.0 (03.07.25)</h4>
+        <h4>Update 2.0 (03.07.25)</h4>
         <ul>
           <li>✨ Normalized aura chances to 100% with unique values.</li>
           <li>🔮 Added Luck Upgrades (10 levels, coin-based).</li>
@@ -515,8 +517,11 @@
         startTime = data.startTime || Date.now();
         if (!hasResetRebirths) {
           rebirthStage = 0;
-          luckBoost = luckUpgrades * 10;
+          luckBoost = 0;
+          luckUpgrades = 0;
+          cooldownLevel = 0;
           hasResetRebirths = true;
+          alert("🔄 All upgrades have been reset for everyone as part of Update 4.0!");
         }
         updateDisplay();
       }
@@ -585,7 +590,7 @@
         }
       }
 
-      startCasinoAnimation(isSuperRoll);
+      startCasinoAnimation();
       const cooldownTimes = [2000, 1900, 1750, 1500];
       setTimeout(() => {
         cooldown = false;
@@ -597,7 +602,7 @@
       }, cooldownTimes[cooldownLevel]);
     }
 
-    function startCasinoAnimation(isSuperRoll) {
+    function startCasinoAnimation() {
       const casinoFrame = document.getElementById("casinoFrame");
       casinoFrame.innerHTML = "";
       casinoFrame.classList.add("active");
@@ -605,7 +610,7 @@
       shiningFrame.className = "shining-frame";
       casinoFrame.appendChild(shiningFrame);
 
-      const rollAuras = getUniqueRollAuras(30, isSuperRoll);
+      const rollAuras = getUniqueRollAuras(30);
       rollAuras[29] = currentAura; // Ensure the last aura is the obtained one
 
       let html = "";
@@ -632,7 +637,7 @@
       casinoFrame.innerHTML = "";
     }
 
-    function getUniqueRollAuras(count, isSuperRoll) {
+    function getUniqueRollAuras(count) {
       const shuffledAuras = [...auras].sort(() => Math.random() - 0.5);
       const rollAuras = [];
       for (let i = 0; i < count - 1; i++) {
@@ -914,8 +919,7 @@
       document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add("active");
       document.getElementById(tabId).classList.add("active");
       currentTab = tabId;
-      if (tabId === "normal-roll") updateAuraChances(false);
-      else if (tabId === "super-roll") updateAuraChances(true);
+      updateAuraChances(currentTab === "super-roll");
       updateDisplay();
     }
 
