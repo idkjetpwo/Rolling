@@ -249,14 +249,24 @@
     <div class="tab-content" id="upgrades">
       <button class="button" onclick="upgradeLuck()">🔮 Luck Upgrade</button>
       <div class="requirements" id="luckUpgradeReqs"></div>
+      <button class="button" onclick="upgradeCooldown()">⏱️ Rolling Cooldown</button>
+      <div class="requirements" id="cooldownReqs"></div>
       <button class="button" onclick="rebirth()">💫 Rebirth</button>
       <div class="requirements" id="rebirthReqs"></div>
       <p>🔮 Luck Upgrade Stage: <span id="luckUpgrades">0/10</span></p>
+      <p>⏱️ Cooldown Upgrade Stage: <span id="cooldownUpgrades">0/3</span></p>
       <p>💫 Rebirth Stage: <span id="rebirthStage">0</span></p>
     </div>
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 2.0</h4>
+        <ul>
+          <li>⏱️ Added Rolling Cooldown upgrade with 3 levels (12, 30, 50 Coins).</li>
+          <li>🔄 Reduced cooldown from 1s → 0.95s (Level 1), 0.95s → 0.875s (Level 2), 0.875s → 0.75s (Level 3).</li>
+          <li>💾 Ensured cooldown upgrade state is saved and loaded.</li>
+          <li>📝 Displayed next cooldown upgrade effect with arrows (e.g., "1s → 0.95s").</li>
+        </ul>
         <h4>Update 1.0</h4>
         <ul>
           <li>✨ Normalized aura chances to 100% with unique values.</li>
@@ -311,12 +321,13 @@
     let superRolls = 0;
     let coins = 0;
     let luckUpgrades = 0;
+    let cooldownLevel = 0; // 0: 1s, 1: 0.95s, 2: 0.875s, 3: 0.75s
     let cooldown = false;
     let hasResetRebirths = false;
     let startTime = Date.now();
 
     function saveGame() {
-      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, hasResetRebirths };
+      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths };
       localStorage.setItem("auraGameSave", JSON.stringify(data));
       console.log("Game saved:", data); // Debugging log
     }
@@ -332,6 +343,7 @@
         superRolls = data.superRolls || 0;
         coins = data.coins || 0;
         luckUpgrades = data.luckUpgrades || 0;
+        cooldownLevel = data.cooldownLevel || 0;
         hasResetRebirths = data.hasResetRebirths || false;
         if (!hasResetRebirths) {
           rebirthStage = 0;
@@ -353,11 +365,12 @@
       cooldown = true;
       document.getElementById("rollBtn").disabled = true;
       document.getElementById("superRollBtn").disabled = true;
+      const cooldownTimes = [1000, 950, 875, 750]; // ms for each level
       setTimeout(() => {
         cooldown = false;
         document.getElementById("rollBtn").disabled = false;
         document.getElementById("superRollBtn").disabled = false;
-      }, 1000);
+      }, cooldownTimes[cooldownLevel]);
 
       if (isSuperRoll) {
         coins -= 10;
@@ -422,6 +435,26 @@
       }
     }
 
+    function upgradeCooldown() {
+      if (cooldownLevel >= 3) {
+        alert("✅ Maximum Cooldown Upgrades reached!");
+        return;
+      }
+
+      const cooldownCosts = [12, 30, 50];
+      const cost = cooldownCosts[cooldownLevel];
+
+      if (coins >= cost) {
+        coins -= cost;
+        cooldownLevel++;
+        alert(`⏱️ Cooldown Upgrade ${cooldownLevel}/3 completed!`);
+        updateDisplay();
+        saveGame();
+      } else {
+        alert(`⚠️ Not enough Coins! Requires ${cost} Coins for the next Cooldown Upgrade.`);
+      }
+    }
+
     function rebirth() {
       if (!currentAura) {
         alert("⚠️ You must roll an Aura first!");
@@ -482,6 +515,7 @@
         : "None";
       document.getElementById("coins").textContent = coins;
       document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/10`;
+      document.getElementById("cooldownUpgrades").textContent = `${cooldownLevel}/3`;
       document.getElementById("rebirthStage").textContent = rebirthStage;
       document.getElementById("totalRolls").textContent = totalRolls;
       document.getElementById("superRolls").textContent = superRolls;
@@ -490,6 +524,7 @@
       updatePlaytime();
       updateRebirthRequirements();
       updateLuckUpgradeRequirements();
+      updateCooldownRequirements();
       updateAuraChances(isSuperRoll);
 
       const resultId = isSuperRoll ? "superResult" : "normalResult";
@@ -533,6 +568,19 @@
       }
       const upgradeCosts = [5, 8, 10, 14, 19, 28, 40, 55, 70, 100];
       reqs.innerHTML = `🔮 Next Luck Upgrade: ${upgradeCosts[luckUpgrades]} Coins → <strong>+10% Luck</strong>`;
+    }
+
+    function updateCooldownRequirements() {
+      const reqs = document.getElementById("cooldownReqs");
+      if (cooldownLevel >= 3) {
+        reqs.innerHTML = "✅ Maximum Cooldown Upgrades reached! 🌟";
+        return;
+      }
+      const cooldownCosts = [12, 30, 50];
+      const nextLevel = cooldownLevel + 1;
+      const currentCooldown = [1000, 950, 875, 750][cooldownLevel];
+      const nextCooldown = [1000, 950, 875, 750][nextLevel];
+      reqs.innerHTML = `⏱️ Next Cooldown Upgrade: ${cooldownCosts[cooldownLevel]} Coins → <strong>${currentCooldown}ms → ${nextCooldown}ms</strong>`;
     }
 
     function updateAuraChances(isSuperRoll = false) {
