@@ -315,6 +315,13 @@
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 4.0</h4>
+        <ul>
+          <li>⚠️ Added specific warning for rolling away Epic aura at Rebirth 0: 'Do you really wanna roll away your Epic aura? You need this for your next rebirth!'</li>
+          <li>🔧 Adjusted aura chances dynamically: Basic/Uncommon less common at low luck, Epic-Legendary more common; Uncommon/Rare less common at moderate luck, Legendary-Mythic more common; Godly/Master very slowly more common above 70% luck.</li>
+          <li>🌟 Added 'Benox' Master aura (0.2%) and renamed 'Setrox' to 'Grand-Master' 🏆 (0.01%), neither required for rebirth.</li>
+          <li>🍀 Super Roll page now displays luck boost +500% only while on that tab.</li>
+        </ul>
         <h4>Update 3.0</h4>
         <ul>
           <li>🎨 Adjusted aura chances with 'Balanced Boost' variation, increasing rare aura probabilities.</li>
@@ -369,21 +376,22 @@
 
   <script>
     const auras = [
-      { name: "ßeba Noob", rarity: "Basic", chance: 30.0, color: "gray", rank: 1 },
-      { name: "Bennet", rarity: "Uncommon", chance: 25.0, color: "green", rank: 2 },
-      { name: "Ginger Johann", rarity: "Uncommon", chance: 15.0, color: "green", rank: 2 },
-      { name: "Reda", rarity: "Rare", chance: 12.0, color: "blue", rank: 3 },
-      { name: "Sigma Magnus", rarity: "Rare", chance: 8.0, color: "blue", rank: 3 },
-      { name: "Sigma Leonardo", rarity: "Epic", chance: 5.0, color: "purple", rank: 4 },
-      { name: "cc jojonas", rarity: "Epic", chance: 3.0, color: "purple", rank: 4 },
-      { name: "vaschili", rarity: "Legendary", chance: 1.5, color: "gold", rank: 5 },
-      { name: "Elox", rarity: "Legendary", chance: 1.0, color: "gold", rank: 5 },
-      { name: "notbenox", rarity: "Legendary", chance: 0.5, color: "gold", rank: 5 },
-      { name: "Valentin kö 8", rarity: "Mythic", chance: 0.3, color: "rainbow", rank: 6 },
-      { name: "cleverlink", rarity: "Mythic", chance: 0.2, color: "rainbow", rank: 6 },
-      { name: "adi pr 69", rarity: "Mythic", chance: 0.1, color: "rainbow", rank: 6 },
-      { name: "Elox487", rarity: "Godly", chance: 0.05, color: "blackwhite", rank: 7 },
-      { name: "Setrox", rarity: "Master", chance: 0.01, color: "gradient-master", rank: 8 }
+      { name: "ßeba Noob", rarity: "Basic", baseChance: 30.0, color: "gray", rank: 1 },
+      { name: "Bennet", rarity: "Uncommon", baseChance: 25.0, color: "green", rank: 2 },
+      { name: "Ginger Johann", rarity: "Uncommon", baseChance: 15.0, color: "green", rank: 2 },
+      { name: "Reda", rarity: "Rare", baseChance: 12.0, color: "blue", rank: 3 },
+      { name: "Sigma Magnus", rarity: "Rare", baseChance: 8.0, color: "blue", rank: 3 },
+      { name: "Sigma Leonardo", rarity: "Epic", baseChance: 5.0, color: "purple", rank: 4 },
+      { name: "cc jojonas", rarity: "Epic", baseChance: 3.0, color: "purple", rank: 4 },
+      { name: "vaschili", rarity: "Legendary", baseChance: 1.5, color: "gold", rank: 5 },
+      { name: "Elox", rarity: "Legendary", baseChance: 1.0, color: "gold", rank: 5 },
+      { name: "notbenox", rarity: "Legendary", baseChance: 0.5, color: "gold", rank: 5 },
+      { name: "Valentin kö 8", rarity: "Mythic", baseChance: 0.3, color: "rainbow", rank: 6 },
+      { name: "cleverlink", rarity: "Mythic", baseChance: 0.2, color: "rainbow", rank: 6 },
+      { name: "adi pr 69", rarity: "Mythic", baseChance: 0.1, color: "rainbow", rank: 6 },
+      { name: "Elox487", rarity: "Godly", baseChance: 0.05, color: "blackwhite", rank: 7 },
+      { name: "Benox", rarity: "Master", baseChance: 0.2, color: "gradient-master", rank: 8 },
+      { name: "Setrox", rarity: "Grand-Master", baseChance: 0.01, color: "gradient-master", rank: 8 }
     ];
 
     let currentAura = null;
@@ -399,6 +407,7 @@
     let hasResetRebirths = false;
     let startTime = Date.now();
     let pendingSuperRoll = false;
+    let currentTab = "normal-roll";
 
     function saveGame() {
       const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths };
@@ -436,8 +445,12 @@
         return;
       }
 
-      if (currentAura && currentAura.rank >= 4) { // Legendary or better (Epic = 4, up to Master = 8)
-        showWarningPopup(isSuperRoll);
+      if (currentAura && currentAura.rank >= 4) { // Legendary or better (Epic = 4, up to Grand-Master = 8)
+        if (rebirthStage === 0 && currentAura.rarity === "Epic") {
+          showWarningPopup(true, "Do you really wanna roll away your Epic aura? You need this for your next rebirth!");
+        } else {
+          showWarningPopup(isSuperRoll);
+        }
         pendingSuperRoll = isSuperRoll;
         return;
       }
@@ -462,15 +475,16 @@
         document.getElementById("superRollBtn").disabled = false;
       }, cooldownTimes[cooldownLevel]);
 
-      const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
-      const roll = Math.random() * 100 / (1 + effectiveLuck / 100);
+      const effectiveLuck = luckBoost + (isSuperRoll || currentTab === "super-roll" ? 500 : 0);
+      const roll = Math.random() * 100;
       let cumulative = 0;
       let availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
 
-      const totalChance = availableAuras.reduce((sum, aura) => sum + aura.chance, 0);
-      const normalizedAuras = availableAuras.map(aura => ({
+      const adjustedAuras = adjustChances(availableAuras, effectiveLuck);
+      const totalChance = adjustedAuras.reduce((sum, aura) => sum + aura.chance, 0);
+      const normalizedAuras = adjustedAuras.map(aura => ({
         ...aura,
-        chance: (aura.chance / totalChance) * 100 * (1 + effectiveLuck / 100)
+        chance: (aura.chance / totalChance) * 100
       }));
 
       for (let aura of normalizedAuras) {
@@ -485,6 +499,24 @@
 
       updateDisplay(isSuperRoll);
       saveGame();
+    }
+
+    function adjustChances(aurasList, luck) {
+      return aurasList.map(aura => {
+        let adjustedChance = aura.baseChance;
+        if (luck >= 0 && luck < 30) {
+          if (aura.rarity === "Basic" || aura.name === "Bennet") adjustedChance *= 0.9; // Less common
+          if (aura.rank >= 4) adjustedChance *= 1.1; // Slightly more common for Epic+
+        } else if (luck >= 30 && luck < 70) {
+          if (aura.rarity === "Basic" || aura.name === "Bennet" || aura.name === "Ginger Johann" || aura.name === "Reda") adjustedChance *= 0.85; // Less common
+          if (aura.rank >= 5) adjustedChance *= 1.2; // More common for Legendary+
+        } else if (luck >= 70) {
+          if (aura.rarity === "Basic" || aura.name === "Bennet" || aura.name === "Ginger Johann" || aura.name === "Reda" || aura.name === "Sigma Magnus") adjustedChance *= 0.8; // Less common
+          if (aura.rank >= 5) adjustedChance *= 1.3; // More common for Legendary+
+          if (aura.rank >= 7) adjustedChance *= 1 + (luck - 70) * 0.005; // Very slow increase for Godly/Master
+        }
+        return { ...aura, chance: adjustedChance };
+      });
     }
 
     function addCoins(rarity) {
@@ -582,7 +614,7 @@
 
       const isGradient = currentAura && currentAura.rarity === "Godly";
       const isRainbow = currentAura && currentAura.rarity === "Mythic";
-      const isMaster = currentAura && currentAura.rarity === "Master";
+      const isMaster = currentAura && (currentAura.rarity === "Master" || currentAura.rarity === "Grand-Master");
       const auraNameStyled = currentAura
         ? isMaster
           ? `<span class="gradient-text-master">${currentAura.name}</span>`
@@ -607,12 +639,12 @@
       document.getElementById("totalRolls").textContent = totalRolls;
       document.getElementById("superRolls").textContent = superRolls;
       document.getElementById("currentLuck").textContent = `${luckBoost}%`;
-      document.getElementById("currentLuckSuper").textContent = `${luckBoost + (isSuperRoll ? 500 : 0)}%`;
+      document.getElementById("currentLuckSuper").textContent = `${luckBoost + (currentTab === "super-roll" ? 500 : 0)}%`;
       updatePlaytime();
       updateRebirthRequirements();
       updateLuckUpgradeRequirements();
       updateCooldownRequirements();
-      updateAuraChances(isSuperRoll);
+      updateAuraChances(currentTab === "super-roll");
 
       const resultId = isSuperRoll ? "superResult" : "normalResult";
       const resultDisplay = document.getElementById(resultId);
@@ -674,10 +706,11 @@
       const chancesDiv = document.getElementById("normalChances");
       const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
       const availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
-      const totalChance = availableAuras.reduce((sum, aura) => sum + aura.chance, 0);
-      const normalizedAuras = availableAuras.map(aura => ({
+      const adjustedAuras = adjustChances(availableAuras, effectiveLuck);
+      const totalChance = adjustedAuras.reduce((sum, aura) => sum + aura.chance, 0);
+      const normalizedAuras = adjustedAuras.map(aura => ({
         ...aura,
-        chance: ((aura.chance / totalChance) * 100 / (1 + effectiveLuck / 100)).toFixed(2)
+        chance: (aura.chance / totalChance) * 100
       }));
 
       let html = "<h3>🎲 Aura Chances</h3><ul>";
@@ -689,7 +722,7 @@
             : aura.color === "gradient-master"
               ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
               : `color:${aura.color}`;
-        html += `<li><span style="${colorStyle}">${aura.name}</span> (${aura.rarity}): ${aura.chance}%</li>`;
+        html += `<li><span style="${colorStyle}">${aura.name}</span> (${aura.rarity}): ${aura.chance.toFixed(2)}%</li>`;
       });
       html += "</ul>";
       chancesDiv.innerHTML = html;
@@ -711,14 +744,17 @@
       document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
       document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add("active");
       document.getElementById(tabId).classList.add("active");
+      currentTab = tabId;
       if (tabId === "normal-roll") updateAuraChances(false);
+      else if (tabId === "super-roll") updateAuraChances(true);
+      updateDisplay();
     }
 
-    function showWarningPopup(isSuperRoll) {
+    function showWarningPopup(isSuperRoll, customMessage = null) {
       const popup = document.getElementById("warningPopup");
       const message = document.getElementById("warningMessage");
       const auraNameStyled = currentAura
-        ? currentAura.rarity === "Master"
+        ? currentAura.rarity === "Grand-Master" || currentAura.rarity === "Master"
           ? `<span class="gradient-text-master">${currentAura.name}</span>`
           : currentAura.rarity === "Godly"
             ? `<span class="gradient-text">${currentAura.name}</span>`
@@ -726,7 +762,7 @@
               ? `<span class="rainbow-text">${currentAura.name}</span>`
               : `<span style="color:${currentAura.color}">${currentAura.name}</span>`
         : "None";
-      message.innerHTML = `⚠️ You have a ${currentAura.rarity} aura: ${auraNameStyled}. Are you sure you want to roll it away?`;
+      message.innerHTML = customMessage || `⚠️ You have a ${currentAura.rarity} aura: ${auraNameStyled}. Are you sure you want to roll it away?`;
       popup.classList.add("active");
     }
 
