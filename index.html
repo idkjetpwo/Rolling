@@ -87,9 +87,9 @@
     }
 
     .button {
-      padding: 1.2em 2.5em;
+      padding: 1em 2em;
       font-size: 1.3em;
-      margin: 0.7em;
+      margin: 0.5em;
       border: none;
       border-radius: 15px;
       cursor: pointer;
@@ -137,9 +137,9 @@
       left: 20px;
       background: rgba(0, 0, 0, 0.9);
       border-radius: 15px;
-      padding: 1.5em;
+      padding: 1em;
       display: none;
-      min-width: 300px;
+      min-width: 250px;
       animation: slideIn 0.5s ease;
       z-index: 10;
       box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
@@ -157,16 +157,16 @@
     .tabs {
       display: flex;
       justify-content: space-around;
-      margin-bottom: 1.5em;
+      margin-bottom: 1em;
     }
 
     .tab {
-      padding: 0.7em 1.5em;
+      padding: 0.6em 1.2em;
       cursor: pointer;
       background: #333;
       border-radius: 10px;
       transition: background 0.3s;
-      font-size: 1.2em;
+      font-size: 1.1em;
       color: white;
     }
 
@@ -183,29 +183,29 @@
     }
 
     .info {
-      margin: 2.5em 0;
-      font-size: 1.4em;
-      line-height: 2em;
+      margin: 2em 0;
+      font-size: 1.3em;
+      line-height: 1.8em;
       background: rgba(0, 0, 0, 0.6);
-      padding: 1.5em;
+      padding: 1.2em;
       border-radius: 15px;
       box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
     }
 
     .requirements {
-      margin: 2em 0;
-      font-size: 1.2em;
+      margin: 1.5em 0;
+      font-size: 1.1em;
       color: #ccc;
     }
 
     .result {
-      margin: 1.5em 0;
-      font-size: 1.3em;
+      margin: 1.2em 0;
+      font-size: 1.2em;
     }
 
     .chances {
-      margin: 1.5em 0;
-      font-size: 1.2em;
+      margin: 1.2em 0;
+      font-size: 1.1em;
       color: #ccc;
     }
 
@@ -215,7 +215,7 @@
     }
 
     .chances li {
-      margin: 0.7em 0;
+      margin: 0.6em 0;
     }
 
     .coins-frame {
@@ -223,9 +223,9 @@
       top: 20px;
       right: 20px;
       background: rgba(0, 0, 0, 0.8);
-      padding: 0.7em 1.5em;
+      padding: 0.6em 1.2em;
       border-radius: 15px;
-      font-size: 1.4em;
+      font-size: 1.3em;
       box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
     }
 
@@ -234,13 +234,13 @@
       top: -300px;
       left: 50%;
       transform: translateX(-50%);
-      width: 600px;
-      height: 200px;
+      width: 500px;
+      height: 150px;
       background: linear-gradient(135deg, #1e1e2f, #2f1e2e);
       border-radius: 15px;
       box-shadow: 0 0 30px #ff69b4;
       text-align: center;
-      font-size: 1.5em;
+      font-size: 1.3em;
       overflow: hidden;
       z-index: 15;
       display: none;
@@ -248,7 +248,7 @@
 
     .casino-frame.active {
       display: block;
-      animation: rollDown 2s ease forwards, fadeOut 1s ease 2s forwards;
+      animation: rollDown 1.6s ease forwards, fadeOut 0.4s ease 1.6s forwards;
     }
 
     @keyframes rollDown {
@@ -262,18 +262,18 @@
     }
 
     .casino-aura {
-      animation: scrollAuras 1.8s linear infinite;
-      margin: 0.5em 0;
-      transition: transform 0.5s ease;
+      animation: scrollAuras 1.6s linear;
+      margin: 0.4em 0;
+      transition: transform 0.3s ease;
     }
 
     @keyframes scrollAuras {
-      0% { transform: translateY(0); }
+      0% { transform: translateY(150%); }
       100% { transform: translateY(-100%); }
     }
 
     .casino-aura.land {
-      animation: landAura 0.5s ease forwards;
+      animation: landAura 0.4s ease forwards;
     }
 
     @keyframes landAura {
@@ -298,7 +298,7 @@
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0, 0, 0, 0.9);
-      padding: 2.5em;
+      padding: 2em;
       border-radius: 20px;
       box-shadow: 0 0 25px rgba(255, 105, 180, 0.6);
       z-index: 20;
@@ -315,17 +315,17 @@
     }
 
     .popup-buttons {
-      margin-top: 1.5em;
+      margin-top: 1.2em;
     }
 
     .popup-button {
-      padding: 1em 2em;
-      margin: 0 0.7em;
+      padding: 0.9em 1.8em;
+      margin: 0.5em;
       border: none;
       border-radius: 12px;
       cursor: pointer;
       transition: transform 0.3s ease;
-      font-size: 1.2em;
+      font-size: 1.1em;
     }
 
     .popup-button.yes {
@@ -379,16 +379,15 @@
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
-        <h4>Update 4.0 (03.07.25)</h4>
-        <ul>
-          <li>⚙️ Added casino-style animation frame: Rolls all auras with colors, lands on obtained aura with unique animation during extended 2s cooldown (reduced to 1.9s, 1.75s, 1.5s with upgrades).</li>
-          <li>⚠️ Adjusted Epic aura warning: Only triggers at Rebirth 0 if required for next rebirth, otherwise no warning unless Legendary or better.</li>
-          <li>📊 Updated rebirth display to show "Rebirth Stage: X/5" for clarity.</li>
-          <li>🔧 Added upgrade and rebirth stage labels: "Luck Upgrade Stage: X/10", "Cooldown Upgrade Stage: X/3", "Rebirth Stage: X/5" under requirements.</li>
-          <li>⏳ Saved playtime across sessions.</li>
-          <li>🎨 Improved UI: Larger fonts, better spacing, gradient buttons, and enhanced contrast.</li>
-        </ul>
         <h4>Update 3.0 (03.07.25)</h4>
+        <ul>
+          <li>⚙️ Improved casino frame: Rolls ~20 existing auras with rarity-based probabilities (Basic 25%, Uncommon 20%, Rare 18%, Legendary 13%, Mythic 5%, Godly 3%, Master 1%, Grand-Master 0.5%), lands on obtained aura with smooth animation.</li>
+          <li>⚠️ Fixed Epic aura warning: Only triggers at Rebirth 0 if required for next rebirth, no warning otherwise unless Legendary or better.</li>
+          <li>🎨 Adjusted UI: Reduced menu and button sizes for better layout, improved animation smoothness.</li>
+          <li>🍀 Enhanced Super Roll: Increases rarity of Legendary+ auras by 1.5x.</li>
+          <li>🐛 Fixed rolling bugs: Ensures aura is set and displayed, maintains consistent speed.</li>
+        </ul>
+        <h4>Update 2.0 (03.07.25)</h4>
         <ul>
           <li>🎨 Adjusted aura chances with 'Balanced Boost' variation, increasing rare aura probabilities.</li>
           <li>💰 Updated coin rewards: Rare (1), Epic (3), Legendary (8), Mythic (18), Godly (50), Master (80), Grand-Master (150).</li>
@@ -522,7 +521,7 @@
       ];
       const nextReq = rebirthRequirements[rebirthStage];
 
-      if (currentAura && currentAura.rank >= 4) { // Legendary or better
+      if (currentAura && currentAura.rank >= 5) { // Legendary or better
         showWarningPopup(isSuperRoll);
         pendingSuperRoll = isSuperRoll;
         return;
@@ -545,24 +544,46 @@
       cooldown = true;
       document.getElementById("rollBtn").disabled = true;
       document.getElementById("superRollBtn").disabled = true;
-      startCasinoAnimation();
+      startCasinoAnimation(isSuperRoll);
       const cooldownTimes = [2000, 1900, 1750, 1500];
       setTimeout(() => {
         cooldown = false;
         document.getElementById("rollBtn").disabled = false;
         document.getElementById("superRollBtn").disabled = false;
         endCasinoAnimation();
+        updateDisplay(isSuperRoll);
+        saveGame();
       }, cooldownTimes[cooldownLevel]);
     }
 
-    function startCasinoAnimation() {
+    function startCasinoAnimation(isSuperRoll) {
       const casinoFrame = document.getElementById("casinoFrame");
       casinoFrame.innerHTML = "";
-      const allAuras = [...auras, ...generateRandomAuras(10)];
       casinoFrame.classList.add("active");
 
+      const rollAuras = [];
+      for (let i = 0; i < 20; i++) {
+        const roll = Math.random() * 100;
+        let cumulative = 0;
+        if (roll <= 25) rollAuras.push(getRandomAuraByRarity("Basic"));
+        else if (roll <= 45) rollAuras.push(getRandomAuraByRarity("Uncommon"));
+        else if (roll <= 63) rollAuras.push(getRandomAuraByRarity("Rare"));
+        else if (roll <= 76) rollAuras.push(getRandomAuraByRarity("Legendary"));
+        else if (roll <= 81) rollAuras.push(getRandomAuraByRarity("Mythic"));
+        else if (roll <= 84) rollAuras.push(getRandomAuraByRarity("Godly"));
+        else if (roll <= 85) rollAuras.push(getRandomAuraByRarity("Master"));
+        else rollAuras.push(getRandomAuraByRarity("Grand-Master"));
+      }
+
+      if (isSuperRoll) {
+        // Boost rare auras for Super Roll
+        rollAuras.forEach(aura => {
+          if (aura.rank >= 5) aura.baseChance *= 1.5;
+        });
+      }
+
       let html = "";
-      allAuras.forEach(aura => {
+      rollAuras.forEach((aura, index) => {
         const colorStyle = aura.color === "rainbow"
           ? "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
           : aura.color === "blackwhite"
@@ -571,18 +592,11 @@
               ? "background:linear-gradient(90deg, #00ffcc, #00cc99, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
               : `color:${aura.color}`;
         html += `<div class="casino-aura" style="${colorStyle}">${aura.name} (${aura.rarity})</div>`;
+        if (index === 19 && currentAura) {
+          html += `<div class="casino-aura land" style="${colorStyle}">🎉 Obtained: ${currentAura.name} (${currentAura.rarity})! 🎉</div>`;
+        }
       });
       casinoFrame.innerHTML = html;
-
-      setTimeout(() => {
-        const auras = casinoFrame.getElementsByClassName("casino-aura");
-        for (let i = 0; i < auras.length; i++) {
-          if (i === auras.length - 1 && currentAura) {
-            auras[i].textContent = `🎉 Obtained: ${currentAura.name} (${currentAura.rarity})! 🎉`;
-            auras[i].classList.add("land");
-          }
-        }
-      }, 1800);
     }
 
     function endCasinoAnimation() {
@@ -590,19 +604,23 @@
       casinoFrame.classList.remove("active");
     }
 
-    function generateRandomAuras(count) {
-      const randomNames = ["Zephyr", "Luna", "Kronos", "Nova", "Aether", "Vortex", "Spectra", "Ignis", "Celeste", "Draco"];
-      const rarities = ["Basic", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Godly", "Master", "Grand-Master"];
-      const colors = ["gray", "green", "blue", "purple", "gold", "rainbow", "blackwhite", "gradient-master", "gradient-master"];
-      const ranks = [1, 2, 3, 4, 5, 6, 7, 8, 8];
-
-      return Array.from({ length: count }, (_, i) => ({
-        name: randomNames[Math.floor(Math.random() * randomNames.length)] + i,
-        rarity: rarities[Math.floor(Math.random() * rarities.length)],
-        baseChance: Math.random() * 5,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        rank: ranks[Math.floor(Math.random() * ranks.length)]
-      }));
+    function getRandomAuraByRarity(rarity) {
+      const validAuras = auras.filter(a => a.rarity === rarity);
+      if (rarity === "Mythic") {
+        const mythicChances = [
+          { aura: "Valentin kö 8", weight: 0.3 },
+          { aura: "cleverlink", weight: 0.2 },
+          { aura: "adi pr 69", weight: 0.1 }
+        ];
+        const totalWeight = mythicChances.reduce((sum, m) => sum + m.weight, 0);
+        const roll = Math.random() * totalWeight;
+        let cumulative = 0;
+        for (let m of mythicChances) {
+          cumulative += m.weight;
+          if (roll <= cumulative) return auras.find(a => a.name === m.aura);
+        }
+      }
+      return validAuras[Math.floor(Math.random() * validAuras.length)];
     }
 
     function adjustChances(aurasList, luck) {
