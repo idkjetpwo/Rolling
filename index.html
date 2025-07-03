@@ -339,6 +339,7 @@
           <li>🎨 Improved UI with smoother gradients, larger fonts, and a unique 'spin' animation for aura rolls.</li>
           <li>💫 Nerfed rebirth luck boosts: Rebirth 1 (+15%), 2 (+40%), 3 (+60%), 4 (+100%), 5 (+150%), added Rebirth 6 (Benox, 800 Coins, +200%), and Rebirth 7 (Setrox, 1500 Coins, +250%).</li>
           <li>🔮 Nerfed luck upgrades: 1 (10 Coins, +2%), 2 (16 Coins, +5%), 3 (20 Coins, +10%), 4 (30 Coins, +12%), 5 (50 Coins, +15%), 6 (80 Coins, +17%), 7 (150 Coins, +20%), 8 (325 Coins, +25%), 9 (750 Coins, +30%), 10 (2000 Coins, +35%).</li>
+          <li>🔄 Implemented a one-time reset of all upgrades, rebirths, and coins for all players due to balance changes in luck upgrades and rebirths, fixing the multiplier bug from pre-balance versions.</li>
         </ul>
         <h4>Update 5.0 (03.07.25)</h4>
         <ul>
@@ -439,13 +440,14 @@
     let cooldownLevel = 0; // 0: 1s, 1: 0.95s, 2: 0.875s, 3: 0.75s
     let cooldown = false;
     let hasResetRebirths = false;
+    let hasResetAll = false; // New flag for full reset
     let startTime = Date.now();
     let playtimeMinutes = 0;
     let pendingSuperRoll = false;
     let currentTab = "normal-roll";
 
     function saveGame() {
-      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, playtimeMinutes };
+      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, hasResetAll, playtimeMinutes };
       localStorage.setItem("auraGameSave", JSON.stringify(data));
       console.log("Game saved:", data); // Debugging log
     }
@@ -463,11 +465,22 @@
         luckUpgrades = data.luckUpgrades || 0;
         cooldownLevel = data.cooldownLevel || 0;
         hasResetRebirths = data.hasResetRebirths || false;
+        hasResetAll = data.hasResetAll || false;
         playtimeMinutes = data.playtimeMinutes || 0;
         startTime = Date.now() - (playtimeMinutes * 60000);
-        if (!hasResetRebirths) {
+
+        // One-time reset for all upgrades and rebirths
+        if (!hasResetAll) {
           rebirthStage = 0;
-          luckBoost = luckUpgrades * 2; // Adjusted for new luck upgrade values
+          luckUpgrades = 0;
+          cooldownLevel = 0;
+          luckBoost = 0; // Reset to 0, upgrades will add from here
+          coins = 0;
+          hasResetAll = true;
+          alert("🔄 A one-time reset of all upgrades, rebirths, and coins has been applied due to balance changes. Enjoy the updated game!");
+        } else if (!hasResetRebirths) {
+          rebirthStage = 0;
+          luckBoost = luckUpgrades * 2; // Adjust for new luck upgrade values if reset was only partial
           hasResetRebirths = true;
         }
         updateDisplay();
