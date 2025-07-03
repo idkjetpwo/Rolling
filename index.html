@@ -295,10 +295,16 @@
     .submit-btn {
       background: #4CAF50;
       color: white;
+      box-shadow: 0 0 10px #4CAF50, 0 0 20px #4CAF50; /* Shiny outglow */
+    }
+
+    .submit-btn.shiny {
+      box-shadow: 0 0 15px #4CAF50, 0 0 30px #4CAF50, 0 0 40px #4CAF50; /* Enhanced shine */
     }
 
     .submit-btn:disabled {
       background: #666;
+      box-shadow: none;
       cursor: not-allowed;
     }
 
@@ -332,24 +338,35 @@
     <div class="tab-content" id="super-roll">
       <button class="button super-roll-btn" id="superRollBtn" onclick="rollAura(true)">🍀 Super Roll (10 Coins, +500% Luck)</button>
       <div class="result" id="superResult"></div>
+      <div class="chances" id="superChances"></div>
       <p>🍀 Super Rolls: <span id="superRolls">0</span></p>
       <p>🍀 Current Luck: <span id="currentLuckSuper">0%</span></p>
     </div>
     <div class="tab-content" id="upgrades">
       <button class="button" onclick="upgradeLuck()">🔮 Luck Upgrade</button>
       <div class="requirements" id="luckUpgradeReqs"></div>
-      <p>Luck Upgrade Stage: <span id="luckUpgrades">0/10</span> <span id="upgradeNote"></span></p>
+      <p>Luck Upgrade Stage: <span id="luckUpgrades">0/10</span> (11th upgrade unlocked after 5th rebirth)</p>
       <button class="button" onclick="upgradeCooldown()">⏱️ Rolling Cooldown</button>
       <div class="requirements" id="cooldownReqs"></div>
       <p>Cooldown Upgrade Stage: <span id="cooldownUpgrades">0/3</span></p>
       <button class="button rebirth-btn" id="rebirthBtn" onclick="rebirth()">💫 Rebirth</button>
+      <button class="button submit-btn" id="submitBtn" onclick="submitRequirement()">Submit</button>
       <div class="requirements" id="rebirthReqs"></div>
       <p>Rebirth Stage: <span id="rebirthStage">0/5</span></p>
-      <button class="button submit-btn" id="submitBtn" onclick="submitRequirement()" disabled>Submit</button>
     </div>
     <div class="tab-content" id="update-log">
       <div class="update-log">
         <h3>📜 Update Log</h3>
+        <h4>Update 7.1 (03.07.25)</h4>
+        <ul>
+          <li>🔧 Adjusted Submit button to submit all coins (up to requirement) or current aura if needed for rebirth.</li>
+          <li>💾 Enhanced save system to include submitted coins and aura.</li>
+          <li>🔮 Always display '11th upgrade unlocked after 5th rebirth' under Luck Upgrade Stage.</li>
+          <li>🍀 Updated Super Roll to show chances with current luck (+500%).</li>
+          <li>🎨 Fixed 'Benox' base chance to 0.02%, corrected 'Valentin kö 8' to rainbow gradient (Mythic), and added rarity to requirement aura chances.</li>
+          <li>🔔 Added persistent notification for rolling a required rebirth aura, with 'Yes' to switch to Upgrades tab and enhance Submit button, 'No' to dismiss.</li>
+          <li>⚠️ Removed Epic warning at Rebirth 0, replaced with new notification system.</li>
+        </ul>
         <h4>Update 7.0 (03.07.25)</h4>
         <ul>
           <li>🛡️ Implemented anti-cheat measures to prevent console manipulation of coins, auras, and rebirth stages.</li>
@@ -435,6 +452,13 @@
       <button class="popup-button no" onclick="confirmRoll(false)">No</button>
     </div>
   </div>
+  <div class="popup" id="rebirthNotification">
+    <p id="rebirthNotificationMessage">You’ve rolled an aura that you need for rebirthing. Go submit it!</p>
+    <div class="popup-buttons">
+      <button class="popup-button yes" onclick="handleRebirthNotification(true)">Yes</button>
+      <button class="popup-button no" onclick="handleRebirthNotification(false)">No</button>
+    </div>
+  </div>
   <div class="container">
     <h1>🎰 Aura Roller Game 🎉</h1>
     <div class="aura" id="auraDisplay">✨ Roll to get your Aura! ✨</div>
@@ -463,7 +487,7 @@
       { name: "cleverlink", rarity: "Mythic", baseChance: 0.2, color: "rainbow", rank: 6 },
       { name: "adi pr 69", rarity: "Mythic", baseChance: 0.1, color: "rainbow", rank: 6 },
       { name: "Elox487", rarity: "Godly", baseChance: 0.05, color: "blackwhite", rank: 7 },
-      { name: "Benox", rarity: "Master", baseChance: 0.2, color: "gradient-master", rank: 8 },
+      { name: "Benox", rarity: "Master", baseChance: 0.02, color: "gradient-master", rank: 8 },
       { name: "Setrox", rarity: "Grand-Master", baseChance: 0.01, color: "gradient-master", rank: 8 }
     ];
 
@@ -485,9 +509,10 @@
     let currentTab = "normal-roll";
     let submittedCoins = 0;
     let submittedAura = null;
+    let rebirthNotificationShown = localStorage.getItem("rebirthNotificationShown") === "true";
 
     function saveGame() {
-      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, hasResetAll, playtimeMinutes, submittedCoins, submittedAura };
+      const data = { currentAura, bestAura, rebirthStage, luckBoost, totalRolls, superRolls, coins, luckUpgrades, cooldownLevel, hasResetRebirths, hasResetAll, playtimeMinutes, submittedCoins, submittedAura, rebirthNotificationShown };
       localStorage.setItem("auraGameSave", JSON.stringify(data));
       console.log("Game saved:", data);
     }
@@ -509,9 +534,9 @@
         playtimeMinutes = data.playtimeMinutes || 0;
         submittedCoins = data.submittedCoins || 0;
         submittedAura = data.submittedAura;
+        rebirthNotificationShown = data.rebirthNotificationShown || false;
         startTime = Date.now() - (playtimeMinutes * 60000);
 
-        // Anti-cheat integrity check
         if (!verifyIntegrity(data)) {
           alert("🛡️ Anti-cheat detected tampering! Game reset to last valid state.");
           coins = 0;
@@ -521,9 +546,9 @@
           luckBoost = 0;
           submittedCoins = 0;
           submittedAura = null;
+          rebirthNotificationShown = false;
         }
 
-        // One-time reset for all upgrades and rebirths
         if (!hasResetAll) {
           rebirthStage = 0;
           luckUpgrades = 0;
@@ -538,32 +563,26 @@
           hasResetRebirths = true;
         }
         updateDisplay();
+        if (rebirthNotificationShown) showRebirthNotification();
       }
       updatePlaytime();
     }
 
     function verifyIntegrity(data) {
-      // Basic integrity check against console tampering
-      const currentState = { coins, currentAura, rebirthStage, luckUpgrades, luckBoost, submittedCoins, submittedAura };
+      const currentState = { coins, currentAura, rebirthStage, luckUpgrades, luckBoost, submittedCoins, submittedAura, rebirthNotificationShown };
       return JSON.stringify(currentState) === JSON.stringify(data) || (data.coins >= 0 && data.rebirthStage >= 0 && data.luckUpgrades >= 0 && data.luckBoost >= 0);
     }
 
     function rollAura(isSuperRoll = false) {
+      if (document.getElementById("rebirthNotification").classList.contains("active")) return;
       if (cooldown) return;
       if (isSuperRoll && coins < 10) {
         alert("⚠️ Not enough Coins! Requires 10 Coins for Super Roll!");
         return;
       }
 
-      if (currentAura && currentAura.rank >= 4 && !submittedAura) { // Legendary or better, not submitted
+      if (currentAura && currentAura.rank >= 5 && !submittedAura) { // Legendary or better, not submitted
         showWarningPopup(isSuperRoll);
-        pendingSuperRoll = isSuperRoll;
-        return;
-      }
-
-      // Check Epic warning only if required for next rebirth and not submitted
-      if (currentAura && currentAura.rarity === "Epic" && rebirthStage === 0 && !submittedAura) {
-        showWarningPopup(isSuperRoll, "Do you really wanna roll away your Epic aura? You need this for your next rebirth!");
         pendingSuperRoll = isSuperRoll;
         return;
       }
@@ -610,6 +629,7 @@
         }
       }
       submittedAura = null; // Reset submitted aura after roll
+      checkRebirthNotification();
       updateDisplay(isSuperRoll);
       saveGame();
     }
@@ -714,6 +734,8 @@
       currentAura = null;
       submittedCoins = 0;
       submittedAura = null;
+      rebirthNotificationShown = false;
+      localStorage.removeItem("rebirthNotificationShown");
       alert(`💫 Rebirth ${rebirthStage} completed! +${req.luck}% Luck!${req.extra ? ` Unlocked ${req.extra}!` : ""} All coins lost.`);
       updateDisplay();
       saveGame();
@@ -733,17 +755,17 @@
       if (rebirthStage >= rebirthRequirements.length) return;
 
       const req = rebirthRequirements[rebirthStage];
-      let coinsToSubmit = prompt("Enter coins to submit (max available):", Math.min(coins, req.coins - submittedCoins)) || 0;
-      coinsToSubmit = Math.max(0, Math.min(parseInt(coinsToSubmit) || 0, coins, req.coins - submittedCoins));
-
+      const coinsToSubmit = Math.min(coins, req.coins - submittedCoins);
       if (coinsToSubmit > 0) {
         coins -= coinsToSubmit;
         submittedCoins += coinsToSubmit;
-      } else if (!submittedAura && currentAura && (currentAura.rarity === req.rarity || currentAura.name === req.name)) {
+      } else if (currentAura && (currentAura.rarity === req.rarity || currentAura.name === req.name)) {
         submittedAura = currentAura;
-        currentAura = null; // Remove current aura after submission
+        currentAura = null;
       }
 
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.classList.remove("shiny");
       updateDisplay();
       saveGame();
     }
@@ -776,7 +798,6 @@
         : "None";
       document.getElementById("coins").textContent = coins;
       document.getElementById("luckUpgrades").textContent = `${luckUpgrades}/${rebirthStage >= 5 ? 11 : 10}`;
-      document.getElementById("upgradeNote").textContent = rebirthStage >= 5 ? " (11th upgrade unlocked after 5th rebirth)" : "";
       document.getElementById("cooldownUpgrades").textContent = `${cooldownLevel}/3`;
       document.getElementById("rebirthStage").textContent = `${rebirthStage}/5`;
       document.getElementById("totalRolls").textContent = totalRolls;
@@ -821,7 +842,7 @@
         "Grand-Master": "background:linear-gradient(90deg, #ffff99, #99ccff, #ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
       };
       const auraText = req.name
-        ? `<span style="${colorMap[req.name === "Benox" ? "Master" : "Grand-Master"] || colorMap.Godly}">${req.name}</span>`
+        ? `<span style="${colorMap[req.name === "Valentin kö 8" ? "Mythic" : req.name === "Benox" ? "Master" : "Grand-Master"] || colorMap.Godly}">${req.name} (${req.name === "Valentin kö 8" ? "Mythic" : req.name === "Benox" ? "Master" : "Grand-Master"})</span>`
         : `<span style="color:${colorMap[req.rarity]}">${req.rarity}</span>`;
       const auraMet = submittedAura && (submittedAura.rarity === req.rarity || submittedAura.name === req.name);
       const coinsMet = submittedCoins >= req.coins;
@@ -871,7 +892,7 @@
     }
 
     function updateAuraChances(isSuperRoll = false) {
-      const chancesDiv = document.getElementById("normalChances");
+      const chancesDiv = isSuperRoll ? document.getElementById("superChances") : document.getElementById("normalChances");
       const effectiveLuck = luckBoost + (isSuperRoll ? 500 : 0);
       const availableAuras = isSuperRoll ? auras.filter(a => a.rank >= 3) : auras;
       const adjustedAuras = adjustChances(availableAuras, effectiveLuck);
@@ -881,7 +902,7 @@
         chance: (aura.chance / totalChance) * 100
       }));
 
-      let html = "<h3>🎲 Aura Chances</h3><ul>";
+      let html = `<h3>🎲 Aura Chances (Luck: ${effectiveLuck}%)</h3><ul>`;
       normalizedAuras.forEach(aura => {
         const colorStyle = aura.color === "rainbow"
           ? "background:linear-gradient(90deg, red, orange, yellow, green, blue, violet);-webkit-background-clip:text;-webkit-text-fill-color:transparent;"
@@ -920,6 +941,7 @@
     }
 
     function showWarningPopup(isSuperRoll, customMessage = null) {
+      if (document.getElementById("rebirthNotification").classList.contains("active")) return;
       const popup = document.getElementById("warningPopup");
       const message = document.getElementById("warningMessage");
       const auraNameStyled = currentAura
@@ -946,6 +968,50 @@
         }
       } else {
         pendingSuperRoll = false;
+      }
+    }
+
+    function showRebirthNotification() {
+      const popup = document.getElementById("rebirthNotification");
+      popup.classList.add("active");
+      document.body.style.pointerEvents = "none"; // Block other actions
+      popup.style.pointerEvents = "auto"; // Allow interaction with popup
+    }
+
+    function handleRebirthNotification(confirmed) {
+      const popup = document.getElementById("rebirthNotification");
+      popup.classList.remove("active");
+      document.body.style.pointerEvents = "auto";
+      if (confirmed) {
+        switchTab("upgrades");
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.classList.add("shiny");
+        setTimeout(() => submitBtn.classList.remove("shiny"), 2000); // Remove shine after 2s
+      }
+      rebirthNotificationShown = false;
+      localStorage.removeItem("rebirthNotificationShown");
+      saveGame();
+    }
+
+    function checkRebirthNotification() {
+      if (rebirthNotificationShown) return;
+      const rebirthRequirements = [
+        { rarity: "Epic", coins: 15, luck: 15 },
+        { rarity: "Legendary", coins: 35, luck: 40 },
+        { name: "Valentin kö 8", coins: 90, luck: 60 },
+        { name: "adi pr 69", coins: 200, luck: 100 },
+        { name: "Elox487", coins: 500, luck: 150, extra: "11th Luck Upgrade" },
+        { name: "Benox", coins: 800, luck: 200 },
+        { name: "Setrox", coins: 1500, luck: 250 }
+      ];
+
+      if (rebirthStage < rebirthRequirements.length) {
+        const req = rebirthRequirements[rebirthStage];
+        if (currentAura && !submittedAura && (currentAura.rarity === req.rarity || currentAura.name === req.name)) {
+          rebirthNotificationShown = true;
+          localStorage.setItem("rebirthNotificationShown", "true");
+          showRebirthNotification();
+        }
       }
     }
 
